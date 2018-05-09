@@ -1,0 +1,20 @@
+body {
+	background-color: black;
+	font-family: 'Rubik', sans-serif;
+}
+
+.btn-login {
+	width: 100%;
+}
+
+.btn-register {
+	width: 100%;
+}
+
+.jumbotron {
+	background-color: white;
+}
+
+.btn-submit {
+	width:100%;
+}
