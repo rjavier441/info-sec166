@@ -1,7 +1,6 @@
 <?php
 // Enable session data usage
 session_start();
-session_write_close();
 
 // Check if HTTPS is being used, otherwise do a redirection
 if($_SERVER["HTTPS"] != "on") {
@@ -20,6 +19,7 @@ if ($client_token !== $recorded_token) {
 	header("Location: https://" . $_SERVER["HTTP_HOST"] . "/info-sec166");
 	exit();
 }
+session_write_close();
 ?>
 <!DOCTYPE html>
 <html>
@@ -58,15 +58,33 @@ if ($client_token !== $recorded_token) {
 <!-- BEGIN header -->
 
 <!-- BEGIN body -->
-<body>
-	
+<body class="container-fluid" ng-app="homeApp">
+	<nav class="navbar navbar-default navbar-fixed-top">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapse" data-toggle="collapse" data-target="#navbarCollapsible" aria-expanded="false">
+					<span class="sr-only">Toggle Navigation</span>
+				</button>
+				<a href="#" class="navbar-brand">
+					<span><img src="img/icon-1968247_1280.png" alt="" style="max-height: 100%"> InfoSec166</span>
+				</a>
+			</div>
+			<div id="navbarCollapsible" class="collapse navbar-collapse">
+				<ul class="nav navbar-nav navbar-right">
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Welcome, {{username}}</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</nav>
 </body>
 <!-- END body -->
 
 <!-- BEGIN footer -->
 <footer>
 	<script type="text/javascript" src="js/utility.js"></script>
-	<script type="text/javascript" src="js/index.js"></script>
+	<script type="text/javascript" src="js/home.js"></script>
 	<h4>Powered by: <i class="fab fa-angular"></i> <i class="fab fa-js-square"></i></h4>
 </footer>
 <!-- END footer -->
