@@ -13,12 +13,12 @@
 
     // @function    formatResponse
     // @parameter   status - the string status to send back to the client. The set of valid inputs includes ONLY these two strings: "success" or "failure".
-    // @parameter   message - the string message to send along with the status
+    // @parameter   body - the string message to send as a response body, along with the status
     // @returns     On success: the formatted associative array response object
     //              On failure: false
     // @details     Creates an associative array object to be sent to the client
-    function formatResponse($status, $message) {
-        $object = ["status" => $status, "message" => $message];
+    function formatResponse($status, $body) {
+        $object = ["status" => $status, "body" => $body];
         if ($status != "success" && $status != "failure") {
             $object = false;
         }
@@ -28,9 +28,14 @@
 
     // @function    replyToClient
     // @parameter   response - the associative array object acquired from a call to formatResponse().
+    // @parameter   statuscode - (Optional) The response status code to send to the client (via response header)
     // @returns     n/a
     // @details     Sends a JSON-encoded response back to the client
-    function replyToClient($response) {
+    function replyToClient($response, $statuscode = NULL) {
+        // Customize response status
+        if (isset($statuscode)) {
+            http_response_code(200);
+        }
         // Send the response data as JSON to the client
         echo json_encode($response);
         return;
