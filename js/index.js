@@ -37,9 +37,9 @@ app.controller("loginController", function ($scope, $http, $window) {
 	// END Model
 
 	// BEGIN Controller Functions
-	$scope.$onInit = function () {
+	$(document).ready(function () {
 		log(`$onInit`, `loginController`, `Login controller initialized`);
-	};
+	});
 	$scope.setError = function (msg) {
 		// $("#loginModalErr").html(msg);
 		ctl.error = msg;
@@ -72,28 +72,29 @@ app.controller("loginController", function ($scope, $http, $window) {
 
 			log(`post`, `loginController`, `Response received: ${JSON.stringify(response.data)}`);	// debug
 			ctl.setError("");
-			switch (response.status) {
-				case 200: {
-					if (!hasStatus || !hasBody || !hasToken || !hasRedirect || !hasNonce) {
-						log(`post`, `loginController`, `Response is incomplete`);
-						var msg = (hasEmsg) ? response.data.body.emsg : "Response incomplete; contact the server admin!";
-						ctl.setError(msg);
-					} else if (response.data.body.nonce !== requestBody.data.timestamp + 1) {
-						// Nonce is not correct; this server I'm connected to could be lying about who they claim they are!
-						ctl.setError("Incorrect Nonce");
-						log(`post`, `loginController`, `expected nonce "${Date.parse(requestBody.data.timestamp)}", received "${response.data.body.nonce}"`);
-					} else {
+			if (!hasStatus || !hasBody || !hasToken || !hasRedirect || !hasNonce) {
+				log(`post`, `loginController`, `Response is incomplete`);
+				var msg = (hasEmsg) ? response.data.body.emsg : "Response incomplete; contact the server admin!";
+				ctl.setError(msg);
+			} else if (!checkTimestampNonce(requestBody.data.timestamp, response.data.body.nonce)) {
+				// Nonce is not correct; this server I'm connected to could be lying about who they claim they are!
+				ctl.setError("Incorrect Nonce");
+				log(`post`, `loginController`, `expected nonce "${Date.parse(requestBody.data.timestamp)}", received "${response.data.body.nonce}"`);
+			} else {
+				switch (response.status) {
+					case 200: {
 						log(`post`,`loginController`, `Login successful`);
 						if (storageOk) {
 							sessionStorage.setItem("token", response.data.body.token);
 						}
 						ctl.enterDashboard(response.data.body.redirect);
+						break;
 					}
-					break;
-				}
-				default: {
-					log(`post`, `loginController`, `Unexpected status code ${response.status}`);
-					break;
+					default: {
+						log(`post`, `loginController`, `Unexpected status code ${response.status}`);
+						ctl.setError(`Unexpected status code ${response.status}`);
+						break;
+					}
 				}
 			}
 		}).catch((errResponse) => {

@@ -41,5 +41,14 @@
         return;
     }
 
+    // @function    tryPostRestore
+    // @parameter   n/a
+    // @returns     the $_POST variable after attempting to acquire its data
+    // @details     Certain front-end MVC frameworks (i.e. AngularJS) do not pass their post data to the proper field. This function attempts to place that data in the right place and return it.
+    // @note        According to Mike Brant's answer on the Stack Overflow post, AngularJS's $http.post() uses "Content-Type:application/json", but I'm not changing my data in the way i'm supposed to in the backend, hence the absence of any $_POST variable content. I will have to get the data here. See this post for more details: "https://stackoverflow.com/questions/15485354/angular-http-post-to-php-and-undefined"
+    function tryPostRestore () {
+        return array_merge($_POST, (array) json_decode(file_get_contents("php://input", true)));
+    }
+
     // END utility.php
 ?>

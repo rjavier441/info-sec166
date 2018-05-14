@@ -38,8 +38,7 @@ if ($any_conn_err) {
 	$response = formatResponse("failure", "Method $method_used not allowed!");
 } else {
 	if (empty($_POST)) {
-		// According to Mike Brant's answer on the Stack Overflow post, AngularJS's $http.post() uses "Content-Type:application/json", but I'm not changing my data in the way i'm supposed to. I will have to get the data here. See this post for more details: "https://stackoverflow.com/questions/15485354/angular-http-post-to-php-and-undefined"
-		$_POST = array_merge($_POST, (array) json_decode(file_get_contents("php://input", true)));
+		$_POST = tryPostRestore();
 	}
 	$action = $_POST['action'];
 	$data = $_POST['data'];
@@ -105,6 +104,7 @@ if ($any_conn_err) {
 								"redirect" => "https://" . $_SERVER["HTTP_HOST"] . "/info-sec166/home.php"
 							);
 							$_SESSION["token"] = $token;
+							$_SESSION["username"] = $username;
 							$response = formatResponse("success", $res_body);
 							$statuscode = 200;
 						}

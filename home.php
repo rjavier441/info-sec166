@@ -59,7 +59,7 @@ session_write_close();
 
 <!-- BEGIN body -->
 <body class="container-fluid" ng-app="homeApp">
-	<nav class="navbar navbar-default navbar-fixed-top">
+	<nav class="navbar navbar-default navbar-fixed-top" ng-controller="navbarController">
 		<div class="container-fluid">
 			<div class="navbar-header">
 				<button type="button" class="navbar-toggle collapse" data-toggle="collapse" data-target="#navbarCollapsible" aria-expanded="false">
@@ -72,7 +72,11 @@ session_write_close();
 			<div id="navbarCollapsible" class="collapse navbar-collapse">
 				<ul class="nav navbar-nav navbar-right">
 					<li class="dropdown">
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Welcome, {{username}}</a>
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Welcome, {{username}} <span class="caret"></span></a>
+						<ul class="dropdown-menu">
+							<li ng-click="logout()"><a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+							<li><a href="#"></a></li>
+						</ul>
 					</li>
 				</ul>
 			</div>
