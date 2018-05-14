@@ -61,6 +61,7 @@ if ($any_conn_err) {
 				} else {
 					$username = $data->username;
 					$password = hash("sha256", $data->password);
+					$client_nonce = $data->timestamp + 1;	// using timestamp as nonce 
 					$stmt->bind_param("ss", $data->username, hash("sha256",$data->password));
 
 					// Acquire results as an associative array
@@ -100,6 +101,7 @@ if ($any_conn_err) {
 							// $resultset[0]["userid"];
 							$res_body = array(
 								"token" => $token,
+								"nonce" => $client_nonce,
 								"redirect" => "https://" . $_SERVER["HTTP_HOST"] . "/info-sec166/home.php"
 							);
 							$_SESSION["token"] = $token;

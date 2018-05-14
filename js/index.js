@@ -49,7 +49,8 @@ app.controller("loginController", function ($scope, $http, $window) {
 			"action": "secure-login",
 			"data": {
 				"username": ctl.username,
-				"password": ctl.password
+				"password": ctl.password,
+				"timestamp": Date.now()
 			}
 		};
 		var config = {
@@ -66,16 +67,21 @@ app.controller("loginController", function ($scope, $http, $window) {
 			var hasBody = (typeof response.data.body === "undefined") ? false : true;
 			var hasToken = (!hasBody) ? false : (typeof response.data.body.token === "undefined") ? false : true;
 			var hasRedirect = (!hasBody) ? false : (typeof response.data.body.redirect === "undefined") ? false : true;
+			var hasNonce = (!hasBody) ? false : (typeof response.data.body.nonce === "undefined") ? false : true;
 			var hasEmsg = (!hasBody) ? false : (typeof response.data.body.emsg === "undefined") ? false : true;
 
 			log(`post`, `loginController`, `Response received: ${JSON.stringify(response.data)}`);	// debug
 			ctl.setError("");
 			switch (response.status) {
 				case 200: {
-					if (!hasStatus || !hasBody || !hasToken || !hasRedirect) {
+					if (!hasStatus || !hasBody || !hasToken || !hasRedirect || !hasNonce) {
 						log(`post`, `loginController`, `Response is incomplete`);
 						var msg = (hasEmsg) ? response.data.body.emsg : "Response incomplete; contact the server admin!";
 						ctl.setError(msg);
+					} else if (response.data.body.nonce !== requestBody.data.timestamp + 1) {
+						// Nonce is not correct; this server I'm connected to could be lying about who they claim they are!
+						ctl.setError("Incorrect Nonce");
+						log(`post`, `loginController`, `expected nonce "${Date.parse(requestBody.data.timestamp)}", received "${response.data.body.nonce}"`);
 					} else {
 						log(`post`,`loginController`, `Login successful`);
 						if (storageOk) {
