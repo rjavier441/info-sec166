@@ -16,7 +16,8 @@ var dbgMode = true;
 var protocol = "https";
 var hostname = (dbgMode) ? "localhost/info-sec166" : "www.rjonaws.com";
 var urls = {
-	"userInfo": `${protocol}://${hostname}/server-side/userinfo.php`
+	"userInfo": `${protocol}://${hostname}/server-side/userinfo.php`,
+	"logout": `${protocol}://${hostname}/server-side/logout.php`
 };
 
 
@@ -39,8 +40,57 @@ app.controller("navbarController", function ($scope, $http, $window) {
 		ctl.loadUserInfo();
 		console.log("Home initialized");
 	});
-	$scope.logout = function () {
+	$scope.logout = function (full = false) {
+		var requestBody = {
+			"action": (full) ? "logoutall" : "logout",
+			"data": {
+				"token": sessionStorage.getItem("token"),
+				"timestamp": Date.now()
+			}
+		};
+		var config = {
+			"headers": {
+				"Content-Type": "application/json"
+			}
+		};
+
 		log("logout", "navbarController", `Logging you out, ${ctl.username}!`);
+		$http.post(urls.logout, requestBody, config).then((response) => {
+			var hasStatus = (typeof response.data.status === "undefined") ? false : true;
+			var hasBody = (typeof response.data.body === "undefined") ? false : true;
+			var hasRedirect = (!hasBody) ? false : (typeof response.data.body.redirect === "undefined") ? false : true;
+			var hasNonce = (!hasBody) ? false : (typeof response.data.body.nonce === "undefined") ? false : true;
+			var hasEmsg = (!hasBody) ? false : (typeof response.data.body.emsg === "undefined") ? false : true;
+
+			log("post", "navbarController", `Received: ${JSON.stringify(response.data)}`);
+			ctl.setError("");
+			if (!hasStatus || !hasBody || !hasRedirect || !hasNonce) {
+				log("post", "navbarController", "Response is incomplete");
+				var msg = (hasEmsg) ? response.data.body.emsg : "Response is incomplete; contact the server admin";
+				ctl.setError(msg);
+			} else if (!checkTimestampNonce(requestBody.data.timestamp, response.data.body.nonce)) {
+				// Nonce is not correct; this server I'm connected to could be lying about who they claim they are!
+				ctl.setError("Incorrect Nonce");
+				log(`post`, `navbarController`, `expected nonce "${Date.parse(requestBody.data.timestamp)}", received "${response.data.body.nonce}"`);
+			} else {
+				switch (response.status) {
+					case 200: {
+						// On successful logout and annihilation of session, take the user back to the login portal.
+						log("post", "navbarController", "Logout successful!");
+						$window.location = response.data.body.redirect;
+						break;
+					}
+					default: {
+						log("post", "navbarController", `Unexpected status ${response.status} received...`);
+						ctl.setError(`Unexpected status ${response.status} received...`);
+						break;
+					}
+				}
+			}
+		}).catch((errResponse) => {
+			log("post", "navbarController", `An error occurred: ${JSON.stringify(errResponse)}`);
+			ctl.setError(`An error occurred: ${JSON.stringify(errResponse)}`);
+		});
 	};
 	// END Controller Functions
 
@@ -75,19 +125,27 @@ app.controller("navbarController", function ($scope, $http, $window) {
 			if (!hasStatus || !hasBody || !hasNonce || !hasUserInfo) {
 				log("post", "navbarController", "Response is incomplete");
 				var msg = (hasEmsg) ? response.data.body.emsg : "Response is incomplete; contact the server admin";
-			}
-			switch (response.status) {
-				case 200: {
-					ctl.username = response.data.body.userinfo.username;
-					break;
-				}
-				default: {
-					log("post", "navbarController", `Unexpected status ${response.status} received...`);
-					break;
+				ctl.setError(msg);
+			} else if (!checkTimestampNonce(requestBody.data.timestamp, response.data.body.nonce)) {
+				// Nonce is not correct; this server I'm connected to could be lying about who they claim they are!
+				ctl.setError("Incorrect Nonce");
+				log(`post`, `navbarController`, `expected nonce "${Date.parse(requestBody.data.timestamp)}", received "${response.data.body.nonce}"`);
+			} else {
+				switch (response.status) {
+					case 200: {
+						ctl.username = response.data.body.userinfo.username;
+						break;
+					}
+					default: {
+						log("post", "navbarController", `Unexpected status ${response.status} received...`);
+						ctl.setError(`Unexpected status ${response.status} received...`);
+						break;
+					}
 				}
 			}
 		}).catch((errResponse) => {
 			log("post", "navbarController", `An error occurred: ${JSON.stringify(errResponse)}`);
+			ctl.setError(`An error occurred: ${JSON.stringify(errResponse)}`);
 		});
 	};
 	// END Utility Functions
