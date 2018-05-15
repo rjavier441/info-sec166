@@ -18,7 +18,7 @@
     //              On failure: false
     // @details     Creates an associative array object to be sent to the client
     function formatResponse($status, $body) {
-        $object = ["status" => $status, "body" => $body];
+        $object = array("status" => $status, "body" => $body);
         if ($status != "success" && $status != "failure") {
             $object = false;
         }
@@ -34,7 +34,7 @@
     function replyToClient($response, $statuscode = NULL) {
         // Customize response status
         if (isset($statuscode)) {
-            http_response_code(200);
+//            http_response_code(200);
         }
         // Send the response data as JSON to the client
         echo json_encode($response);
