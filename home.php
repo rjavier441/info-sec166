@@ -1,4 +1,9 @@
 <?php
+// Unfortunately, I haven't figured out how to include in front-end php files. I'll have to copy this function for now.
+function checkDebugMode ($_IS_OPT) {
+    return isset($_IS_OPT) && $_IS_OPT["dbgMode"] === true;
+}
+
 // Enable session data usage
 session_start();
 
@@ -7,6 +12,13 @@ if($_SERVER["HTTPS"] != "on") {
 	// With https, the entire request body is encrypted
     header("Location: https://" . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"]);
     exit();
+}
+
+// Compatibility Check: AWS environment differs from my own, so I must refer to them differently
+if (checkDebugMode($_IS_OPT)) {
+	$subdir = "/info-sec166";
+} else {
+	$subdir = "";
 }
 
 // Acquire token from querystring parameters

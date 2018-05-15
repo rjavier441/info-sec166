@@ -50,5 +50,15 @@
         return array_merge($_POST, (array) json_decode(file_get_contents("php://input", true)));
     }
 
+    // @function    checkDebugMode
+    // @parameter   $_IS_OPT - the InfoSec Project Options variable that may or may not be defined within the credentials.php file
+    // @returns     On debug mode: true
+    //              On production mode: false
+    //              On unverified/error: -1
+    // @details     This function returns whether or not debug mode is set, and allows the server side to adjust redirect file paths accordingly
+    function checkDebugMode ($_IS_OPT) {
+        return isset($_IS_OPT) && $_IS_OPT["dbgMode"] === true;
+    }
+
     // END utility.php
 ?>

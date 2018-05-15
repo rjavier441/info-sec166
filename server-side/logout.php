@@ -3,7 +3,7 @@ require "lib/credentials.php";
 require "utility.php";
 
 // Compatibility Check: AWS environment differs from my own, so I must refer to them differently
-if (isset($_IS_OPT) && $_IS_OPT["dbgMode"] === true) {
+if (checkDebugMode($_IS_OPT)) {
 	$subdir = "/info-sec166";
 } else {
 	$subdir = "";
