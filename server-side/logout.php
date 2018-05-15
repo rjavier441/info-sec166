@@ -2,6 +2,13 @@
 require "lib/credentials.php";
 require "utility.php";
 
+// Compatibility Check: AWS environment differs from my own, so I must refer to them differently
+if (isset($_IS_OPT) && $_IS_OPT["dbgMode"] === false) {
+	$subdir = "/info-sec166";
+} else {
+	$subdir = "";
+}
+
 // Enable use of session variables
 session_start();
 
@@ -48,7 +55,7 @@ switch ($action) {
 		killSession();
 		$res_body = array(
 			"nonce" => $client_nonce,
-			"redirect" => "https://" . $_SERVER["HTTP_HOST"] . "/info-sec166"
+			"redirect" => "https://" . $_SERVER["HTTP_HOST"] . $subdir
 		);
 		$response = formatResponse("success", $res_body);
 		$statuscode = 200;
@@ -57,7 +64,7 @@ switch ($action) {
 		killSession();
 		$res_body = array(
 			"nonce" => $client_nonce,
-			"redirect" => "https://" . $_SERVER["HTTP_HOST"] . "/info-sec166"
+			"redirect" => "https://" . $_SERVER["HTTP_HOST"] . $subdir
 		);
 		$response = formatResponse("success", $res_body);
 		$statuscode = 200;
