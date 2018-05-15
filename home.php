@@ -28,7 +28,7 @@ $recorded_token = $_SESSION["token"];
 // Check that the token already has session data
 if ($client_token !== $recorded_token || !isset($_SESSION["token"])) {
 	// Take client back to the login page
-	header("Location: https://" . $_SERVER["HTTP_HOST"] . "/info-sec166");
+	header("Location: https://" . $_SERVER["HTTP_HOST"] . $subdir);
 	exit();
 }
 session_write_close();
