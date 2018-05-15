@@ -11,10 +11,6 @@
 
 
 var storageOk = storageAvailable("sessionStorage");
-var dbgMode = true;
-// var protocol = (dbgMode) ? "http" : "https";
-var protocol = "https";
-var hostname = (dbgMode) ? "localhost/info-sec166" : "www.rjonaws.com";
 var urls = {
 	"userInfo": `${protocol}://${hostname}/server-side/userinfo.php`,
 	"logout": `${protocol}://${hostname}/server-side/logout.php`

@@ -152,7 +152,8 @@ if($_SERVER["HTTPS"] != "on") {
 
 <!-- BEGIN footer -->
 <footer>
-	<script type="text/javascript" src="js/utility.js"></script>
+	<script type="text/javascript" src="js/lib/options.js"></script>
+	<script type="text/javascript" src="js/lib/utility.js"></script>
 	<script type="text/javascript" src="js/index.js"></script>
 	<h4>Powered by: <i class="fab fa-angular"></i> <i class="fab fa-js-square"></i></h4>
 </footer>
