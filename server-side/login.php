@@ -1,4 +1,15 @@
 <?php
+//  PROJECT:        InfoSec166
+//  Name:           R. Javier
+//  File:           utility.php
+//  Date Created:   May 10, 2018
+//  Last Modified:  May 10, 2018
+//  Details:
+//                  This file contains the logic for all login web transactions
+//  Dependencies:
+//                  PHP
+//                  MySQL
+//                  Apache Web Server
 require "lib/credentials.php";
 require "utility.php";
 
@@ -55,7 +66,7 @@ if ($any_conn_err) {
 		switch ($action) {
 			case "ping":
 				$response = formatResponse("success", "ping");
-				$statuscode = 200;
+				// $statuscode = 200;
 				break;
 			case "secure-login":
 				// Prepare statement and execute query
@@ -63,7 +74,7 @@ if ($any_conn_err) {
 				$stmt = $db->stmt_init();
 				if (!$stmt->prepare($query)) {
 					$response = formatResponse("failure", "Statement(s) failed");
-					$statuscode = 500;
+					// $statuscode = 200;
 				} else {
 					$username = $data->username;
 					$password = hash("sha256", $data->password);
@@ -86,7 +97,7 @@ if ($any_conn_err) {
 						// If the user couldn't be determined, invalidate the response
 						$res_body = array("emsg" => "Invalid Credentials");
 						$response = formatResponse("failure",$res_body);
-						$statuscode = 500;
+						// $statuscode = 200;
 					} else {
 						// Otherwise, have the server remember the client data for 1 hr minimum., and have the client remember it for the same amount
 						ini_set("session.gc_maxlifetime", 3600);
@@ -101,7 +112,7 @@ if ($any_conn_err) {
 						$stmt2 = $db->stmt_init();
 						if (!$stmt2->prepare($query)) {
 							$response = formatResponse("failure", "Unable to establish session");
-							$statuscode = 500;
+							// $statuscode = 500;
 						} else {
 							// 3.) Send session token and redirect securely to client
 							// $resultset[0]["userid"];
@@ -113,18 +124,18 @@ if ($any_conn_err) {
 							$_SESSION["token"] = $token;
 							$_SESSION["username"] = $username;
 							$response = formatResponse("success", $res_body);
-							$statuscode = 200;
+							// $statuscode = 200;
 						}
 					}
 				}
 				break;
 			case "insecure-login":
 				$response = formatResponse("success", "Hah! You thought I'd let you do that?");
-				$statuscode = 200;
+				// $statuscode = 200;
 				break;
 			default:
 				$response = formatResponse("failure", "Invalid action " . $action);
-				$statuscode = 403;
+				// $statuscode = 403;
 				break;
 		}
 	} catch (Exception $e) {
@@ -132,6 +143,6 @@ if ($any_conn_err) {
 	}
 }
 
-replyToClient($response, $statuscode);
+replyToClient($response);
 mysqli_close($db);
 ?>

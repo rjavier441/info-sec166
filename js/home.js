@@ -73,6 +73,7 @@ app.controller("navbarController", function ($scope, $http, $window) {
 					case 200: {
 						// On successful logout and annihilation of session, take the user back to the login portal.
 						log("post", "navbarController", "Logout successful!");
+						sessionStorage.removeItem("token");	// an extra precaution
 						$window.location = response.data.body.redirect;
 						break;
 					}

@@ -1,4 +1,15 @@
 <?php
+//  PROJECT:        InfoSec166
+//  Name:           R. Javier
+//  File:           utility.php
+//  Date Created:   May 10, 2018
+//  Last Modified:  May 10, 2018
+//  Details:
+//                  This file contains handy utility functions for acquire the current user's information
+//  Dependencies:
+//                  PHP
+//                  MySQL
+//                  Apache Web Server
 require "lib/credentials.php";
 require "utility.php";
 
@@ -36,7 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 } else {
 	$method_used = $_SERVER["REQUEST_METHOD"];
 	$response = formatResponse("failure", array("emsg" => "Method $method_used not allowed"));
-	$statuscode = 500;
+	// $statuscode = 500;
 }
 
 // Only proceed if the client token is correct
@@ -51,12 +62,12 @@ switch ($action) {
 	case "getall":
 		$res_body = array("nonce" => $client_nonce, "userinfo" => $_SESSION);
 		$response = formatResponse("success", $res_body);
-		$statuscode = 200;
+		// $statuscode = 200;
 		break;
 	default:
 		$res_body = array("nonce" => $client_nonce, "emsg" => "Unrecognized action $action");
 		$response = formatResponse("failure", $res_body);
-		$statuscode = 500;
+		// $statuscode = 500;
 		break;
 }
 
