@@ -46,6 +46,31 @@ if ($any_conn_err) {
 	$data = $_POST['data'];
 	$client_nonce = $data->timestamp + 1;
 
+	// Verify the user's captcha from the server side.
+	$gc_verify_url = "https://www.google.com/recaptcha/api/siteverify";
+	$gc_verify_data = array("secret" => $_CREDENTIALS["grcaptcha"]["secret"], "response" => $data->g_recaptcha_response);
+	$gc_post_options = array(
+		"http" => array(
+			"header" => "Content-Type: application/x-www-form-urlencoded\r\n",
+			"method" => "POST",
+			"content" => http_build_query($gc_verify_data)
+		)
+	);
+	$gc_request_context = stream_context_create($gc_post_options);
+	$gc_request_result = file_get_contents($gc_verify_url, false, $gc_request_context);
+	if ($gc_request_result === FALSE) {
+		$response = formatResponse("failure", "Captcha verification failed");
+		replyToClient($response);
+		exit();
+	} else {
+		$gc_json = json_decode($gc_request_result);
+		if ($gc_json->success !== TRUE) {
+			$response = formatResponse("failure", array("nonce" => $client_nonce, "emsg" => "Get away from me, bot!"));
+			replyToClient($response);
+			exit();
+		}
+	}
+
 	// On success, perform the requested action
 	try {
 		switch ($action) {

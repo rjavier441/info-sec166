@@ -137,9 +137,11 @@ app.controller("registrationController", function ($scope, $http) {
 			return;
 		}
 
+		var gRecaptchaResponse = grecaptcha.getResponse();
 		var requestBody = {
 			"action": "register",
 			"data": {
+				"g_recaptcha_response": gRecaptchaResponse,
 				"username": ctl.username,
 				"password": ctl.password,
 				"birthyear": ctl.birthdate.getFullYear(),
@@ -163,6 +165,7 @@ app.controller("registrationController", function ($scope, $http) {
 
 			log(`post`, `registrationController`, `Response received: ${JSON.stringify(response.data)}`);	// debug
 			ctl.setError("");
+			grecaptcha.reset();
 			if (!hasStatus || !hasBody || !hasNonce) {
 				// Missing some important parameters; let's fail just in case there's a deeper issue
 				log(`post`, `registrationController`, `Response is incomplete`);

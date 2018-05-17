@@ -49,6 +49,9 @@ if($_SERVER["HTTPS"] != "on") {
 
 	<!-- Page CSS -->
 	<link rel="stylesheet" href="css/index.css">
+
+	<!-- Google ReCAPTCHA -->
+	<script src="https://www.google.com/recaptcha/api.js"></script>
 </head>
 <!-- END header -->
 
@@ -117,6 +120,7 @@ if($_SERVER["HTTPS"] != "on") {
 							<h5 class="msg-error" ng-bind="error"></h5>
 						</div>
 						<div class="modal-body">
+							<form action="">
 							<div class="input-group">
 								<span class="input-group-addon">Username</span>
 								<input type="text" ng-model="username" class="form-control">
@@ -129,6 +133,8 @@ if($_SERVER["HTTPS"] != "on") {
 								<span class="input-group-addon">Birth Date</span>
 								<input type="date" ng-model="birthdate" class="form-control">
 							</div>
+							<div class="g-recaptcha" data-sitekey="6LeVtlkUAAAAAOKS03XICdfybNWFbre5_1LnBbsM"></div>
+							</form>
 						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
