@@ -7,9 +7,9 @@ SET SQL_SAFE_UPDATES = 0;
 
 -- Sample User Data
 INSERT INTO user(username,birthdate,password,salt,bio) VALUES
-("admin", "1995-11-04", "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2", "0.80701400 1526611426", "I am the administrator. I am the law!"),
-("stark5", "1970-05-29", "9807825d8800feac419d99af760d9a7d9c03ea4e0cb7429bd953b50710dffc40", "0.07925900 1526611814", "I am ironman."),
-("batman", "1939-05-27", "c18615a6c8272bcf8d1f7fb9077810f02d3666eff8e69712cc30ba04e4f3dd63", "0.59387900 1526612171", "Fighting crime, all the time!");
+("admin", "1995-11-04", "68145169df14fd4748b27b1beb1618c3a3e49d729ebd4b4916c0b083de031de7", "0.80701400 1526611426", "I am the administrator. I am the law!"),
+("stark5", "1970-05-29", "03a5c8cfc40b11b5111a5880b468e8eece7d025e0f2f2ea458e31c617e61e96f", "0.07925900 1526611814", "I am ironman."),
+("batman", "1939-05-27", "bb8f926443c17440f32a47fbb62b71aed8f95506ff89696a8227359ca02edb70", "0.59387900 1526612171", "Fighting crime, all the time!");
 
 -- Sample Admin Data
 INSERT INTO admin(userid) VALUES (1);	-- User "admin"'s user ID is auto-incremented to 1
