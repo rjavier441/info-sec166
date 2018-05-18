@@ -80,7 +80,7 @@ if ($any_conn_err) {
 					$response = formatResponse("failure", $res_body);
 				} else {
 					// Prepare a SQL statement
-					$query = "INSERT INTO user (username,birthdate,password,bio) VALUES (?,?,?,'No bio, yet...')";
+					$query = "INSERT INTO user (username,birthdate,password,salt,bio) VALUES (?,?,?,?,'No bio, yet...')";
 					$stmt = $db->stmt_init();
 					if (!$stmt->prepare($query)) {
 						$res_body = array("nonce" => $client_nonce, "emsg" => "Statement(s) failed");
@@ -88,7 +88,8 @@ if ($any_conn_err) {
 					} else {
 						// Acquire new user credentials
 						$username = $data->username;
-						$password = hash("sha256", $data->password);
+						$newsalt = microtime();
+						$password = hash("sha256", $data->password . $newsalt);
 
 						// Format a SQL-parsable datetime string
 						$bd_year = $data->birthyear;
@@ -98,7 +99,7 @@ if ($any_conn_err) {
 						$bd_full = $bd_year . "-" . $bd_mon . "-" . $bd_mday . " " . $fake_bd_time;
 
 						// Bind parameters and execute statement
-						$stmt->bind_param("sss", $username, $bd_full, $password);
+						$stmt->bind_param("ssss", $username, $bd_full, $password, $newsalt);
 						if (!$stmt->execute()) {
 							$res_body = array("nonce" => $client_nonce, "emsg" => "Failed to register new user");
 							$response = formatResponse("failure", $res_body);

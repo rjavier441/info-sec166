@@ -28,7 +28,7 @@ session_start();
 
 // Only allow https requests here
 if ($_SERVER["HTTPS"] != "on") {
-	$response = formatResponse("failure","Protocol HTTP is insecure and is not allowed");
+	$response = formatResponse("failure", array("emsg" => "Protocol HTTP is insecure and is not allowed"));
 	replyToClient($response);
 	exit();
 }
@@ -53,7 +53,7 @@ if ($any_conn_err) {
 } else if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 	// Ensure that only post requests operated on this file
 	$method_used = $_SERVER["REQUEST_METHOD"];
-	$response = formatResponse("failure", "Method $method_used not allowed!");
+	$response = formatResponse("failure", array("emsg" => "Method $method_used not allowed!"));
 } else {
 	if (empty($_POST)) {
 		$_POST = tryPostRestore();
@@ -65,21 +65,46 @@ if ($any_conn_err) {
 	try {
 		switch ($action) {
 			case "ping":
-				$response = formatResponse("success", "ping");
+				$response = formatResponse("success", array("msg" => "ping"));
 				// $statuscode = 200;
 				break;
 			case "secure-login":
+				// Prepare and execute statement for acquire the user's salt
+				$saltquery = "SELECT salt FROM user WHERE username=?";
+				$saltstmt = $db->stmt_init();
+				$salt = "";
+				if (!$saltstmt->prepare($saltquery)) {
+					$response = formatResponse("failure", array("emsg" => "Statement(s) didn't work"));
+					break;
+				} else {
+					$username = $data->username;
+					$saltstmt->bind_param("s", $data->username);
+					$saltstmt->execute();
+					$saltstmtresultobj = $saltstmt->get_result();
+					$saltstmtresult = array();
+					while ($row = $saltstmtresultobj->fetch_assoc()) {
+						array_push($saltstmtresult, $row);
+					}
+					$saltstmt->close();
+					if (count($saltstmtresult) != 1) {
+						$response = formatResponse("failure", array("emsg" => "Ambigious result received"));
+						break;
+					} else {
+						$salt = $saltstmtresult[0]["salt"];
+					}
+				}
+
 				// Prepare statement and execute query
 				$query = "SELECT * FROM user WHERE username=? AND password=?";
 				$stmt = $db->stmt_init();
 				if (!$stmt->prepare($query)) {
-					$response = formatResponse("failure", "Statement(s) failed");
+					$response = formatResponse("failure", array("emsg" => "Statement(s) failed"));
 					// $statuscode = 200;
 				} else {
 					$username = $data->username;
-					$password = hash("sha256", $data->password);
+					$password = hash("sha256", $data->password . $salt);
 					$client_nonce = $data->timestamp + 1;	// using timestamp as nonce 
-					$stmt->bind_param("ss", $data->username, hash("sha256",$data->password));
+					$stmt->bind_param("ss", $data->username, $password);
 
 					// Acquire results as an associative array
 					// NOTE: Recall that PHP allows you to instantiate variables immediately, thus not needing initialization
