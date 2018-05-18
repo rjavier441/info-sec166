@@ -7,6 +7,7 @@ CREATE TABLE user (
 	username varchar(50) NOT NULL,
 	birthdate datetime,
 	password varchar(100) NOT NULL,
+	salt varchar(21) NOT NULL,
 	bio varchar(250),
 	PRIMARY KEY (userid),
 	UNIQUE (username)

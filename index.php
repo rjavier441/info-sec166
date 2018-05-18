@@ -49,6 +49,9 @@ if($_SERVER["HTTPS"] != "on") {
 
 	<!-- Page CSS -->
 	<link rel="stylesheet" href="css/index.css">
+
+	<!-- Google ReCAPTCHA -->
+	<script src="https://www.google.com/recaptcha/api.js"></script>
 </head>
 <!-- END header -->
 
@@ -114,39 +117,34 @@ if($_SERVER["HTTPS"] != "on") {
 						<div class="modal-header">
 							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 							<h3 class="modal-title">Registration</h3>
+							<h5 class="msg-error" ng-bind="error"></h5>
 						</div>
-						<div class="modal-body"></div>
+						<div class="modal-body">
+							<form action="">
+							<div class="input-group">
+								<span class="input-group-addon">Username</span>
+								<input type="text" ng-model="username" class="form-control">
+							</div>
+							<div class="input-group">
+								<span class="input-group-addon">Password</span>
+								<input type="password" ng-model="password" class="form-control">
+							</div>
+							<div class="input-group">
+								<span class="input-group-addon">Birth Date</span>
+								<input type="date" ng-model="birthdate" class="form-control">
+							</div>
+							<div class="g-recaptcha" data-sitekey="6LeVtlkUAAAAAOKS03XICdfybNWFbre5_1LnBbsM"></div>
+							</form>
+						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-							<button type="button" class="btn btn-primary">Submit</button>
+							<button type="button" class="btn btn-primary" ng-click="submit()">Submit</button>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
-		<!-- <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
-			<button class="btn btn-primary btn-login" type="button" data-toggle="collapse" data-target="#loginCollapse" aria-expanded="false" aria-controls="loginCollapse">Login</button>
-			<div id="loginCollapse" class="collapse">
-				<div class="well">
-					<div class="input-group">
-						<span class="input-group-addon">Username</span>
-						<input type="text" ng-model="username" class="form-control">
-					</div>
-					<div class="input-group">
-						<span class="input-group-addon">Password</span>
-						<input type="password" ng-model="password" class="form-control">
-					</div>
-					<button class="btn btn-success btn-submit" ng-click="submit()">Submit</button>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
-			<button class="btn btn-info btn-register">Register</button>
-		</div>
-	</div> -->
 </body>
 <!-- END body -->
 
