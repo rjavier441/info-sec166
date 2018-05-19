@@ -61,7 +61,7 @@ if ($any_conn_err) {
 	$action = $_POST['action'];
 	$data = $_POST['data'];
 
-	// On success, repond based on the action
+	// On success, respond based on the action
 	try {
 		switch ($action) {
 			case "ping":
@@ -148,6 +148,7 @@ if ($any_conn_err) {
 							);
 							$_SESSION["token"] = $token;
 							$_SESSION["username"] = $username;
+							$_SESSION["userid"] = $resultset[0]["userid"];
 							$response = formatResponse("success", $res_body);
 							// $statuscode = 200;
 						}

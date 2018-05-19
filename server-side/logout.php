@@ -1,7 +1,7 @@
 <?php
 //  PROJECT:        InfoSec166
 //  Name:           R. Javier
-//  File:           utility.php
+//  File:           logout.php
 //  Date Created:   May 10, 2018
 //  Last Modified:  May 10, 2018
 //  Details:
@@ -54,11 +54,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 
 // Only proceed if the client token is correct
-if ($data->token !== $_SESSION["token"]) {
-	$response = formatResponse("failure", array("nonce" => $client_nonce, "emsg" => "Invalid token"));
-	// replyToClient($response, $statuscode);
-	exit();
-}
+// if ($data->token !== $_SESSION["token"]) {
+// 	$response = formatResponse("failure", array("nonce" => $client_nonce, "emsg" => "Invalid token"));
+// 	// replyToClient($response, $statuscode);
+// 	exit();
+// }
 
 // Process the input
 switch ($action) {
