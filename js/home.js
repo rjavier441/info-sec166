@@ -153,20 +153,6 @@ app.controller("postAreaController", function ($scope, $http, $window) {
 	// BEGIN Model
 	var ctl = $scope;
 	$scope.postList = [];
-	$scope.testPostList = [
-		{
-			"title": "Hello World",
-			"content": "This is just a nice test for use in designing the post page"
-		},
-		{
-			"title": "Test 2",
-			"content": "Some test that isn't completed"
-		},
-		{
-			"title": "Sup buddy",
-			"content": "How's it goin?"
-		}
-	];
 	$scope.error = "";
 	$scope.pagenum = 0;
 	$scope.pagesize = 10;
@@ -177,13 +163,10 @@ app.controller("postAreaController", function ($scope, $http, $window) {
 	// BEGIN Controller Functions
 	$(document).ready(function () {
 		console.log("postAreaController initialized");
-		// ctl.test();
 		ctl.getPosts();
+		// ctl.initEventBindings();
 	});
-	$scope.test = function () {
-		console.log("Testing the postAreaController");
-		ctl.postList = ctl.testPostList;
-	}
+	// $scope.initEventBindings = function () {};
 	$scope.setError = function (msg) {
 		ctl.error = msg;
 	};
@@ -235,8 +218,14 @@ app.controller("postAreaController", function ($scope, $http, $window) {
 							log("post", "postAreaController", `Post search unsuccessful`);
 							ctl.setError("Post search unsuccessful");
 						} else {
+							var tempPostList = response.data.body.posts.result;
+
+							// Add the "show" member to each member of the array
 							log("post", "postAreaController", `Post search successful`);
-							ctl.postList = response.data.body.posts.result;
+							for(var i = 0; i < tempPostList.length; i++) {
+								tempPostList[i].show = false;
+							}
+							ctl.postList = tempPostList;
 						}
 						break;
 					}

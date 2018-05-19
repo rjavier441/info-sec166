@@ -98,8 +98,15 @@ session_write_close();
 		<div class="col-xs-1 col-sm-1 col-md-2 col-lg-2"></div>
 		<div class="post-area col-xs-10 col-sm-10 col-md-8 col-lg-8">
 			<div class="well" ng-repeat="post in postList">
-				<h2>{{post.title}}</h2>
-				<p>{{(post.content).slice(0, 100)}}</p>
+				<h2 class="post-title">{{post.title}}</h2>
+				<div ng-show="!postList[$index].show">
+					<p>{{(post.content).slice(0, 300)}}...</p>
+					<button class="btn btn-info" ng-click="postList[$index].show = true;" ng-hide="">Expand</button>
+				</div>
+				<div ng-show="postList[$index].show">
+					<p>{{post.content}}</p>
+					<button class="btn btn-default" ng-click="postList[$index].show = false;">Close</button>
+				</div>
 			</div>
 		</div>
 		<div class="col-xs-1 col-sm-1 col-md-2 col-lg-2"></div>
