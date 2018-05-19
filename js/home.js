@@ -13,7 +13,8 @@
 var storageOk = storageAvailable("sessionStorage");
 var urls = {
 	"userInfo": `${protocol}://${hostname}/server-side/userinfo.php`,
-	"logout": `${protocol}://${hostname}/server-side/logout.php`
+	"logout": `${protocol}://${hostname}/server-side/logout.php`,
+	"getposts": `${protocol}://${hostname}/server-side/postviewer.php`
 };
 
 
@@ -146,6 +147,111 @@ app.controller("navbarController", function ($scope, $http, $window) {
 		});
 	};
 	// END Utility Functions
+});
+
+app.controller("postAreaController", function ($scope, $http, $window) {
+	// BEGIN Model
+	var ctl = $scope;
+	$scope.postList = [];
+	$scope.testPostList = [
+		{
+			"title": "Hello World",
+			"content": "This is just a nice test for use in designing the post page"
+		},
+		{
+			"title": "Test 2",
+			"content": "Some test that isn't completed"
+		},
+		{
+			"title": "Sup buddy",
+			"content": "How's it goin?"
+		}
+	];
+	$scope.error = "";
+	$scope.pagenum = 0;
+	$scope.pagesize = 10;
+	$scope.searchtype = "title";
+	$scope.searchterm = "";
+	// END Model
+
+	// BEGIN Controller Functions
+	$(document).ready(function () {
+		console.log("postAreaController initialized");
+		// ctl.test();
+		ctl.getPosts();
+	});
+	$scope.test = function () {
+		console.log("Testing the postAreaController");
+		ctl.postList = ctl.testPostList;
+	}
+	$scope.setError = function (msg) {
+		ctl.error = msg;
+	};
+	$scope.getPosts = function () {
+		var requestBody = {
+			"action": "search",
+			"data": {
+				"token": sessionStorage.getItem("token"),
+				"timestamp": Date.now(),
+				"pagesize": ctl.pagesize,
+				"pagenum": ctl.pagenum,
+				"searchtype": ctl.searchtype,
+				"searchterm": ctl.searchterm
+			}
+		};
+		var config = {
+			"headers": {
+				"Content-Type": "application/json"
+			}
+		};
+
+		log("getPosts", "postAreaController", `Requesting posts...`);
+		$http.post(urls.getposts, requestBody, config).then((response) => {
+			var hasStatus = (typeof response.data.status === "undefined") ? false : true;
+			var hasBody = (typeof response.data.body === "undefined") ? false : true;
+			var hasNonce = (!hasBody) ? false : (typeof response.data.body.nonce === "undefined") ? false : true;
+			var hasEmsg = (!hasBody) ? false : (typeof response.data.body.emsg === "undefined") ? false : true;
+			var hasPostsObject = (!hasBody) ? false : (typeof response.data.body.posts === "undefined") ? false : true;
+			var hasPostsSearchStatus = (!hasPostsObject) ? false : (typeof response.data.body.posts.success === "undefined") ? false : true;
+			var hasPostsSearchResult = (!hasPostsObject) ? false : (typeof response.data.body.posts.result === "undefined") ? false : true;
+
+			log(`post`, `postAreaController`, `Response received: ${JSON.stringify(response.data)}`);	// debug
+			ctl.setError("");
+			if (!hasStatus || !hasNonce) {
+				log(`post`, `postAreaController`, `Response is incomplete`);
+				var msg = (hasEmsg) ? response.data.body.emsg : "Response incomplete; contact the server admin!";
+				ctl.setError(msg);
+			} else if (!checkTimestampNonce(requestBody.data.timestamp, response.data.body.nonce)) {
+				// Nonce is not correct; this server I'm connected to could be lying about who they claim they are!
+				log(`post`, `postAreaController`, `expected nonce "${Date.parse(requestBody.data.timestamp)}", received "${response.data.body.nonce}"`);
+				ctl.setError("Incorrect Nonce");
+			} else if (!hasPostsSearchStatus) {
+				log("post", "postAreaController", "Post search status data is missing");
+				ctl.setError("Invalid blog post search status data received");
+			} else {
+				switch (response.status) {
+					case 200: {
+						if (response.data.body.posts.success === false) {
+							log("post", "postAreaController", `Post search unsuccessful`);
+							ctl.setError("Post search unsuccessful");
+						} else {
+							log("post", "postAreaController", `Post search successful`);
+							ctl.postList = response.data.body.posts.result;
+						}
+						break;
+					}
+					default: {
+						log(`post`, `postAreaController`, `Unexpected status code ${response.status}`);
+						ctl.setError(`Unexpected status code ${response.status}`);
+						break;
+					}
+				}
+			}
+		}).catch((errResponse) => {
+			log("post", "postAreaController", `An error occurred: ${JSON.stringify(errResponse)}`);
+		});
+	}
+	// END Controller Functions
 });
 // END Angular Controllers
 

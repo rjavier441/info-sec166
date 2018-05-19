@@ -4,6 +4,12 @@ body {
 	font-family: 'Rubik', sans-serif;
 }
 
+div.post-area {
+	margin-top: 70px;
+	/*max-height: 500px;*/
+	/*overflow: scroll;*/
+}
+
 .btn-login {
 	width: 100%;
 }
