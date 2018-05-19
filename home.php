@@ -72,16 +72,11 @@ session_write_close();
 <!-- BEGIN body -->
 <body class="container-fluid" ng-app="homeApp">
 	<nav class="navbar navbar-default navbar-fixed-top" ng-controller="navbarController">
-		<div class="container-fluid">
-			<div class="navbar-header">
-				<button type="button" class="navbar-toggle collapse" data-toggle="collapse" data-target="#navbarCollapsible" aria-expanded="false">
-					<span class="sr-only">Toggle Navigation</span>
-				</button>
+		<div class="navbar-inner">
+			<div class="container-fluid">
 				<a href="#" class="navbar-brand">
 					<span><img src="img/icon-1968247_1280.png" alt="" style="max-height: 100%"> InfoSec166</span>
 				</a>
-			</div>
-			<div id="navbarCollapsible" class="collapse navbar-collapse">
 				<ul class="nav navbar-nav navbar-right">
 					<li class="dropdown">
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Welcome, {{username}} <span class="caret"></span></a>
