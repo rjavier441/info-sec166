@@ -153,6 +153,7 @@ app.controller("postAreaController", function ($scope, $http, $window) {
 	// BEGIN Model
 	var ctl = $scope;
 	$scope.postList = [];
+	$scope.previewSize = 300;
 	$scope.error = "";
 	$scope.pagenum = 0;
 	$scope.pagesize = 10;
