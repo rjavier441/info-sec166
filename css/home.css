@@ -4,6 +4,10 @@ body {
 	font-family: 'Rubik', sans-serif;
 }
 
+div.control-area {
+	margin-top: 70px;
+}
+
 div.post-area {
 	margin-top: 70px;
 	/*max-height: 500px;*/
@@ -15,6 +19,10 @@ textarea.editor {
 	max-height: 600px;
 	max-width: 100%;
 	min-width: 100%;
+}
+
+.btn-control {
+	width: 100%;
 }
 
 .btn-login {

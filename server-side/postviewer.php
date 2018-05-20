@@ -155,6 +155,34 @@ switch ($action) {
             }
         }
         break;
+    case "create":
+        // Ensure that the appropriate parameters were given
+        if (!isset($data->title) || !isset($data->content)) {
+            $res_body = array("nonce" => $client_nonce, "emsg" => "Your request was incomplete");
+            $response = formatResponse("failure", $res_body);
+        } else {
+            $newContent = $data->content;
+            $newTitle = $data->title;
+
+            // Create a new post
+            $creator_result = createPost($newTitle, $newContent, $_SESSION["userid"]);
+            switch (gettype($creator_result)) {
+                case "boolean":
+                    if ($update_result === FALSE) {
+                        $res_body = array("nonce" => $client_nonce, "emsg" => "The post was not created");
+                        $response = formatResponse("failure", $res_body);
+                    } else {
+                        $res_body = array("nonce" => $client_nonce, "success" => TRUE, "result" => "Creation successful");
+                        $response = formatResponse("success", $res_body);
+                    }
+                    break;
+                default:
+                    $res_body = array("nonce" => $client_nonce, "emsg" => $creator_result["emsg"]);
+                    $response = formatResponse("failure", $res_body);
+                    break;
+            }
+        }
+        break;
     default:
         $res_body = array("nonce" => $client_nonce, "emsg" => "Unrecognized action $action");
         $response = formatResponse("failure", $res_body);
@@ -254,6 +282,49 @@ function updatePost ($pid, $title, $content) {
         } else {
             // Execute statement and compile results
             $stmt->bind_param("ssi", $title, $content, $pid);
+            if (!$stmt->execute()) {
+                $return_val = FALSE;
+            } else {
+                $return_val = TRUE;
+            }
+        }
+        $stmt->close();
+    }
+
+    // Close MySQL database connection
+    mysqli_close($db);
+    return $return_val;
+}
+
+// @function    createPost
+// @parameter   title - the title for this new post
+// @parameter   content - the content for this new post
+// @parameter   uid - the author's userid
+// @returns     On successful creation: TRUE
+//              On failed creation: FALSE
+//              On other error: array("success" => FALSE, "emsg" => "some error message")
+// @details     This function attempts to create a new post with the given title and content.
+function createPost ($title, $content, $uid) {
+    global $_CREDENTIALS;
+    $return_val = NULL;
+
+    // Initialize MySQL database connection
+    $db = mysqli_connect($_CREDENTIALS["db"]["host"], $_CREDENTIALS["db"]["user"], $_CREDENTIALS["db"]["pwd"], $_CREDENTIALS["db"]["name"]);
+
+    // Ensure the connection was good
+    $any_conn_err = mysqli_connect_errno();
+    if ($any_conn_err) {
+        $return_val = array("success" => FALSE, "emsg" => "Could not connect to database");
+    } else {
+        $query = "INSERT INTO post (userid, title, content) VALUES (?,?,?)";
+        $stmt = $db->stmt_init();
+
+        // Prepare statment
+        if (!$stmt->prepare($query)) {
+            $return_val = array("success" => FALSE, "emsg" => "Could not prepare statement(s)");
+        } else {
+            // Execute statement and check the operation's result
+            $stmt->bind_param("iss", $uid, $title, $content);
             if (!$stmt->execute()) {
                 $return_val = FALSE;
             } else {

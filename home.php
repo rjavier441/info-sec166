@@ -75,14 +75,13 @@ session_write_close();
 		<div class="navbar-inner">
 			<div class="container-fluid">
 				<a href="#" class="navbar-brand">
-					<span><img src="img/icon-1968247_1280.png" alt="" style="max-height: 100%"> InfoSec166</span>
+					<span><img src="img/icon-1968247_1280.png" alt="" style="max-height: 100%"> InfoSec166 </span>
 				</a>
 				<ul class="nav navbar-nav navbar-right">
 					<li class="dropdown">
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Welcome, {{username}} <span class="caret"></span></a>
 						<ul class="dropdown-menu">
 							<li ng-click="logout()"><a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-							<li><a href="#"></a></li>
 						</ul>
 					</li>
 				</ul>
@@ -90,7 +89,39 @@ session_write_close();
 		</div>
 	</nav>
 	<div class="row" ng-controller="postAreaController">
-		<div class="col-xs-1 col-sm-1 col-md-2 col-lg-2"></div>
+		<div class="control-area col-xs-1 col-sm-1 col-md-2 col-lg-2" ng-controller="postCreatorController">
+			<button type="button" class="navbar-btn btn btn-default btn-control" ng-click="launchCreator();"><span class="glyphicon glyphicon-plus btn-control"></span></button>
+			<div id="creator" class="modal fade" tab-index="-1" role="dialog">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="model-title">Create New Post <small class="msg-error">{{error}}</small></h4>
+						</div>
+						<div class="modal-body">
+							<div class="input-group">
+								<span class="input-group-addon">
+									Title
+								</span>
+								<input class="form-control" type="text" ng-model="title">
+							</div>
+							<div>
+								<div class="input-group">
+									<span class="input-group-addon">
+										Content
+									</span>
+								</div>
+								<textarea class="editor" ng-model="content"></textarea>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-default" data-dismiss="modal" ng-click="clearCreator();">Discard Post</button>
+							<button type="button" class="btn btn-info" ng-click="submitCreatorData();">Save Post</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 		<div class="post-area col-xs-10 col-sm-10 col-md-8 col-lg-8">
 			<div class="well" ng-repeat="post in postList">
 				<h2 class="post-title">
