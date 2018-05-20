@@ -28,6 +28,7 @@ session_start();
 
 // Globals
 $response = "";
+$isAdmin = NULL;
 $action = NULL;
 $data = NULL;
 $client_nonce = NULL;   // using timestamp as nonce 
@@ -64,6 +65,17 @@ if ($data->token !== $_SESSION["token"]) {
     $response = formatResponse("failure", array("nonce" => $client_nonce, "emsg" => "Invalid token"));
     replyToClient($response, $statuscode);
     exit();
+}
+
+// Acquire the user's admin status
+$adminCheck = isAdmin($_SESSION["userid"]);
+switch (gettype($adminCheck)) {
+    case "boolean":
+        $isAdmin = $adminCheck;
+        break;
+    default:
+        $isAdmin = FALSE;   // default to false if the user's admin status cannot be determined
+        break;
 }
 
 // Process the input
@@ -135,7 +147,7 @@ replyToClient($response);
 //              On failure: an associative array with member "emsg" describing the error, and member "success" = FALSE
 // @details     This function allows you to search for posts within the database and returns their data. Note that this function truncates the post's content field to reduce payload size. To acquire a specific post's content, use "getPost" instead
 function searchPosts ($term, $type, $size, $page) {
-    global $_CREDENTIALS;
+    global $_CREDENTIALS, $_SESSION, $isAdmin;
     $return_val = NULL;
 
     // Initialize MySQL database connection
@@ -146,7 +158,7 @@ function searchPosts ($term, $type, $size, $page) {
     if ($any_conn_err) {
         $return_val = array("success" => FALSE, "emsg" => "Could not connect to database");
     } else {
-        $query = "SELECT * FROM post WHERE $type LIKE ? LIMIT ?, ?";
+        $query = "SELECT p.postid, u.userid, p.content, p.posttime, p.title, u.username AS author FROM post AS p LEFT OUTER JOIN user AS u ON p.userid=u.userid WHERE p.$type LIKE ? LIMIT ?, ?";
         $stmt = $db->stmt_init();
 
         // Prepare statment
@@ -161,10 +173,68 @@ function searchPosts ($term, $type, $size, $page) {
             $stmt_result_obj = $stmt->get_result();
             $stmt_result = array();
             while ($row = $stmt_result_obj->fetch_assoc()) {
+                // Insert new key-value pairs to the $row object; these will allow the client-side UI to determine if the user can edit/delete this particular post
+                $permissions = array("can_edit" => FALSE, "can_delete" => FALSE);
+                $row = array_merge($row, $permissions);
+
+                // Assign edit/delete permissions for this post
+                if ($isAdmin === TRUE || $row["userid"] === $_SESSION["userid"]) {
+                    $row["can_edit"] = TRUE;
+                    $row["can_delete"] = TRUE;
+                }
                 array_push($stmt_result, $row);
             }
             $stmt->close();
             $return_val = array("success" => TRUE, "result" => $stmt_result);
+        }
+    }
+
+    // Close MySQL database connection
+    mysqli_close($db);
+    return $return_val;
+}
+
+// @function    isAdmin
+// @parameter   uid - the userid of user to check for admin status
+// @returns     On success, and user has admin status: true
+//              On success, but user is not an admin: false
+//              On failure: associative array with members "success" => FALSE and "emsg" containing a message regarding the failure
+// @details     This funciton checks the database if the user with the specified "uid" is indeed an admin.
+function isAdmin ($uid) {
+    global $_CREDENTIALS;
+    $return_val = NULL;
+
+    // Initialize MySQL database connection
+    $db = mysqli_connect($_CREDENTIALS["db"]["host"], $_CREDENTIALS["db"]["user"], $_CREDENTIALS["db"]["pwd"], $_CREDENTIALS["db"]["name"]);
+
+    // Ensure the connection was good
+    $any_conn_err = mysqli_connect_errno();
+    if ($any_conn_err) {
+        $return_val = array("success" => FALSE, "emsg" => "Could not connect to database");
+    } else {
+        $query = "SELECT * FROM admin WHERE userid = ?";
+        $stmt = $db->stmt_init();
+
+        // Prepare statment
+        if (!$stmt->prepare($query)) {
+            $return_val = array("success" => FALSE, "emsg" => "Could not prepare search");
+        } else {
+            // Execute statement and compile results
+            $stmt->bind_param("i", $uid);
+            $stmt->execute();
+            $stmt_result_obj = $stmt->get_result();
+            $stmt_result = array();
+            while ($row = $stmt_result_obj->fetch_assoc()) {
+                array_push($stmt_result, $row);
+            }
+            $stmt->close();
+
+            // Check for admin status
+            if (count($stmt_result) !== 1) {
+                $return_val = FALSE;
+            } else {
+                $return_val = TRUE;
+            }
         }
     }
 

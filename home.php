@@ -93,9 +93,25 @@ session_write_close();
 		<div class="col-xs-1 col-sm-1 col-md-2 col-lg-2"></div>
 		<div class="post-area col-xs-10 col-sm-10 col-md-8 col-lg-8">
 			<div class="well" ng-repeat="post in postList">
-				<h2 class="post-title">{{post.title}}</h2>
+				<h2 class="post-title">
+					{{post.title}}
+					<small>
+						posted by {{post.author}}
+						<p>{{post.posttime}}</p>
+					</small>
+					<div class="btn-group">
+						<button class="btn btn-default" ng-show="post.can_edit">
+							<span class="glyphicon glyphicon-pencil"></span>
+						</button>
+						<button class="btn btn-default" ng-show="post.can_edit">
+							<span class="glyphicon glyphicon-remove"></span>
+						</button>
+					</div>
+				</h2>
 				<div ng-show="!postList[$index].show">
-					<p>{{(post.content).slice(0, previewSize)}}...</p>
+					<p>{{(post.content).slice(0, previewSize)}}
+						<span ng-hide="postList[$index].content.length < previewSize">...</span>
+					</p>
 					<button class="btn btn-info" ng-click="postList[$index].show = true;" ng-hide="postList[$index].content.length < previewSize">Expand</button>
 				</div>
 				<div ng-show="postList[$index].show">
