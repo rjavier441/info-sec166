@@ -232,7 +232,7 @@ function searchPosts ($term, $type, $size, $page) {
 //              On other error: array("success" => FALSE, "emsg" => "some error message")
 // @details     This function attempts to update the blog post specified by "pid" with the new title and content specified.
 function updatePost ($pid, $title, $content) {
-    global $_CREDENTIALS;
+    global $_CREDENTIALS, $_SESSION;
     $return_val = NULL;
 
     // Initialize MySQL database connection
@@ -242,6 +242,8 @@ function updatePost ($pid, $title, $content) {
     $any_conn_err = mysqli_connect_errno();
     if ($any_conn_err) {
         $return_val = array("success" => FALSE, "emsg" => "Could not connect to database");
+    } else if (!hasEditPermission($pid, $_SESSION["userid"])) {
+        $return_val = array("success" => FALSE, "emsg" => "You aren't allowed to edit this post");
     } else {
         $query = "UPDATE post SET title=?, content=? WHERE postid=?";
         $stmt = $db->stmt_init();
@@ -253,6 +255,56 @@ function updatePost ($pid, $title, $content) {
             // Execute statement and compile results
             $stmt->bind_param("ssi", $title, $content, $pid);
             if (!$stmt->execute()) {
+                $return_val = FALSE;
+            } else {
+                $return_val = TRUE;
+            }
+        }
+        $stmt->close();
+    }
+
+    // Close MySQL database connection
+    mysqli_close($db);
+    return $return_val;
+}
+
+// @function    hasEditPermisssion
+// @parameter   pid - the postid of a post
+// @parameter   uid - the userid of a user
+// @returns     On success, and user can edit: true
+//              On success, but user cannot edit: false
+//              On failure: array("success" => FALSE, "emsg" => "some error message")
+// @details     This function is useful for determining whether a user specified by "uid" is authorized to update a post specified by "pid"
+function hasEditPermission ($pid, $uid) {
+    global $_CREDENTIALS;
+    $return_val = NULL;
+
+    // Initialize MySQL database connection
+    $db = mysqli_connect($_CREDENTIALS["db"]["host"], $_CREDENTIALS["db"]["user"], $_CREDENTIALS["db"]["pwd"], $_CREDENTIALS["db"]["name"]);
+
+    // Ensure the connection was good
+    $any_conn_err = mysqli_connect_errno();
+    if ($any_conn_err) {
+        $return_val = array("success" => FALSE, "emsg" => "Could not connect to database");
+    } else {
+        $query = "SELECT * FROM post WHERE postid = ?";
+        $stmt = $db->stmt_init();
+
+        // Prepare statment
+        if (!$stmt->prepare($query)) {
+            $return_val = array("success" => FALSE, "emsg" => "Could not verify edit permission");
+        } else {
+            // Execute statement and compile results
+            $stmt->bind_param("i", $pid);
+            $stmt->execute();
+            $stmt_result_obj = $stmt->get_result();
+            $stmt_result = array();
+            while ($row = $stmt_result_obj->fetch_assoc()) {
+                array_push($stmt_result, $row);
+            }
+
+            // Check the post's userid, which will identify the post creator
+            if ($stmt_result[0]["userid"] !== $uid) {
                 $return_val = FALSE;
             } else {
                 $return_val = TRUE;

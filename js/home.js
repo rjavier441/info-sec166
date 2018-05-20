@@ -315,7 +315,7 @@ app.controller("postAreaController", function ($scope, $http, $window) {
 							ctl.getPosts();
 						} else {
 							log(`post`, `postAreaController`, `Post was not updated`);
-							ctl.editor.error = "Post was not updated";
+							ctl.editor.error = (hasEmsg) ? response.data.body.emsg : "Post was not updated";
 						}
 						break;
 					}
