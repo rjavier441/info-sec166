@@ -14,7 +14,7 @@ var storageOk = storageAvailable("sessionStorage");
 var urls = {
 	"userInfo": `${protocol}://${hostname}/server-side/userinfo.php`,
 	"logout": `${protocol}://${hostname}/server-side/logout.php`,
-	"getposts": `${protocol}://${hostname}/server-side/postviewer.php`
+	"postViewer": `${protocol}://${hostname}/server-side/postviewer.php`
 };
 
 
@@ -159,6 +159,13 @@ app.controller("postAreaController", function ($scope, $http, $window) {
 	$scope.pagesize = 10;
 	$scope.searchtype = "title";
 	$scope.searchterm = "";
+
+	$scope.editor = {
+		"error": "",
+		"postid": -1,
+		"title": "",
+		"content": ""
+	};
 	// END Model
 
 	// BEGIN Controller Functions
@@ -190,7 +197,7 @@ app.controller("postAreaController", function ($scope, $http, $window) {
 		};
 
 		log("getPosts", "postAreaController", `Requesting posts...`);
-		$http.post(urls.getposts, requestBody, config).then((response) => {
+		$http.post(urls.postViewer, requestBody, config).then((response) => {
 			var hasStatus = (typeof response.data.status === "undefined") ? false : true;
 			var hasBody = (typeof response.data.body === "undefined") ? false : true;
 			var hasNonce = (!hasBody) ? false : (typeof response.data.body.nonce === "undefined") ? false : true;
@@ -241,6 +248,89 @@ app.controller("postAreaController", function ($scope, $http, $window) {
 			log("post", "postAreaController", `An error occurred: ${JSON.stringify(errResponse)}`);
 		});
 	}
+	$scope.launchEditor = function (index) {
+		// console.log(`Editing ${JSON.stringify(ctl.postList[index])}`);	// debug
+		var currentPost = ctl.postList[index];
+		ctl.editor.postid = currentPost.postid;
+		ctl.editor.title = currentPost.title;
+		ctl.editor.content = currentPost.content;
+
+		log("launchEditor", "postAreaController", `Launching editor...`);
+		$("#editor").modal("show");
+	};
+	$scope.clearEditor = function () {
+		log("clearEditor", "postAreaController", `Clearing editor...`);
+		ctl.editor.error = "";
+		ctl.editor.postid = -1;
+		ctl.editor.title = "";
+		ctl.editor.content = "";
+	};
+	$scope.closeEditorManually = function () {
+		log("closeEditorManually", "postAreaController", `Dismissing editor...`);
+		$("#editor").modal("hide");
+	};
+	$scope.submitEditorData = function () {
+		var requestBody = {
+			"action": "update",
+			"data": {
+				"token": sessionStorage.getItem("token"),
+				"timestamp": Date.now(),
+				"title": ctl.editor.title,
+				"content": ctl.editor.content,
+				"postid": ctl.editor.postid
+			}
+		};
+		var config = {
+			"headers": {
+				"Content-Type": "application/json"
+			}
+		};
+
+		log("submitEditorData", "postAreaController", `Saving changes to post...`);
+		$http.post(urls.postViewer, requestBody, config).then((response) => {
+			var hasStatus = (typeof response.data.status === "undefined") ? false : true;
+			var hasBody = (typeof response.data.body === "undefined") ? false : true;
+			var hasNonce = (!hasBody) ? false : (typeof response.data.body.nonce === "undefined") ? false : true;
+			var hasEmsg = (!hasBody) ? false : (typeof response.data.body.emsg === "undefined") ? false : true;
+			var hasSuccess = (!hasBody) ? false : (typeof response.data.body.success === "undefined") ? false : true;
+
+			log(`post`, `postAreaController`, `Response received: ${JSON.stringify(response.data)}`);
+			ctl.editor.error = "";
+			if (!hasStatus || !hasNonce) {
+				log(`post`, `postAreaController`, `Response is incomplete`);
+				var msg = (hasEmsg) ? response.data.body.emsg : "Response is incomplete; contact the server admin!";
+				ctl.editor.error = msg;
+			} else if (!checkTimestampNonce(requestBody.data.timestamp, response.data.body.nonce)) {
+				// Nonce is not correct; this server I'm connected to could be lying about who they claim they are!
+				ctl.editor.error = "Incorrect Nonce";
+				log(`post`, `postAreaController`, `expected nonce "${Date.parse(requestBody.data.timestamp)}", received "${response.data.body.nonce}"`);
+			} else {
+				switch (response.status) {
+					case 200: {
+						if (hasSuccess && response.data.body.success === true) {
+							// Close editor and reload posts page
+							log(`post`, `postAreaController`, "Post updated successfully");
+							ctl.clearEditor();
+							ctl.closeEditorManually();
+							ctl.getPosts();
+						} else {
+							log(`post`, `postAreaController`, `Post was not updated`);
+							ctl.editor.error = "Post was not updated";
+						}
+						break;
+					}
+					default: {
+						var msg = `Unexpected status code ${response.status}`;
+						log(`post`, `postAreaController`, msg);
+						ctl.editor.error = msg;
+						break;
+					}
+				}
+			}
+		}).catch((errResponse) => {
+			log(`post`, `postAreaController`, `An error occurred: ${JSON.stringify(errResponse)}`);
+		});
+	};
 	// END Controller Functions
 });
 // END Angular Controllers

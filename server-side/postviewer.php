@@ -126,6 +126,35 @@ switch ($action) {
         $res_body = array("nonce" => $client_nonce, "posts" => $posts);
         $response = formatResponse("success", $res_body);
         break;
+    case "update":
+        // Ensure that the appropriate parameters were given
+        if (!isset($data->title) || !isset($data->content) || !isset($data->postid)) {
+            $res_body = array("nonce" => $client_nonce, "emsg" => "Your request was incomplete");
+            $response = formatResponse("failure", $res_body);
+        } else {
+            $newContent = $data->content;
+            $newTitle = $data->title;
+            $postid = $data->postid;
+
+            // Update and respond based on the result of the operation
+            $update_result = updatePost($postid, $newTitle, $newContent);
+            switch (gettype($update_result)) {
+                case "boolean":
+                    if ($update_result === FALSE) {
+                        $res_body = array("nonce" => $client_nonce, "emsg" => "The post was not updated");
+                        $response = formatResponse("failure", $res_body);
+                    } else {
+                        $res_body = array("nonce" => $client_nonce, "success" => TRUE, "result" => "Update successful");
+                        $response = formatResponse("success", $res_body);
+                    }
+                    break;
+                default:
+                    $res_body = array("nonce" => $client_nonce, "emsg" => $update_result["emsg"]);
+                    $response = formatResponse("failure", $res_body);
+                    break;
+            }
+        }
+        break;
     default:
         $res_body = array("nonce" => $client_nonce, "emsg" => "Unrecognized action $action");
         $response = formatResponse("failure", $res_body);
@@ -184,9 +213,52 @@ function searchPosts ($term, $type, $size, $page) {
                 }
                 array_push($stmt_result, $row);
             }
-            $stmt->close();
             $return_val = array("success" => TRUE, "result" => $stmt_result);
         }
+        $stmt->close();
+    }
+
+    // Close MySQL database connection
+    mysqli_close($db);
+    return $return_val;
+}
+
+// @function    updatePost
+// @parameter   pid - the postid of the post to update
+// @parameter   title - the post's new title string
+// @parameter   content - the post's new content string
+// @returns     On successful update: TRUE
+//              On failed update: FALSE
+//              On other error: array("success" => FALSE, "emsg" => "some error message")
+// @details     This function attempts to update the blog post specified by "pid" with the new title and content specified.
+function updatePost ($pid, $title, $content) {
+    global $_CREDENTIALS;
+    $return_val = NULL;
+
+    // Initialize MySQL database connection
+    $db = mysqli_connect($_CREDENTIALS["db"]["host"], $_CREDENTIALS["db"]["user"], $_CREDENTIALS["db"]["pwd"], $_CREDENTIALS["db"]["name"]);
+
+    // Ensure the connection was good
+    $any_conn_err = mysqli_connect_errno();
+    if ($any_conn_err) {
+        $return_val = array("success" => FALSE, "emsg" => "Could not connect to database");
+    } else {
+        $query = "UPDATE post SET title=?, content=? WHERE postid=?";
+        $stmt = $db->stmt_init();
+
+        // Prepare statement
+        if (!$stmt->prepare($query)) {
+            $return_val = array("success" => FALSE, "emsg" => "Could not prepare update(s)");
+        } else {
+            // Execute statement and compile results
+            $stmt->bind_param("ssi", $title, $content, $pid);
+            if (!$stmt->execute()) {
+                $return_val = FALSE;
+            } else {
+                $return_val = TRUE;
+            }
+        }
+        $stmt->close();
     }
 
     // Close MySQL database connection
@@ -227,7 +299,6 @@ function isAdmin ($uid) {
             while ($row = $stmt_result_obj->fetch_assoc()) {
                 array_push($stmt_result, $row);
             }
-            $stmt->close();
 
             // Check for admin status
             if (count($stmt_result) !== 1) {
@@ -236,6 +307,7 @@ function isAdmin ($uid) {
                 $return_val = TRUE;
             }
         }
+        $stmt->close();
     }
 
     // Close MySQL database connection

@@ -100,7 +100,7 @@ session_write_close();
 						<p>{{post.posttime}}</p>
 					</small>
 					<div class="btn-group">
-						<button class="btn btn-default" ng-show="post.can_edit">
+						<button class="btn btn-default" ng-click="launchEditor($index);" ng-show="post.can_edit">
 							<span class="glyphicon glyphicon-pencil"></span>
 						</button>
 						<button class="btn btn-default" ng-show="post.can_edit">
@@ -117,6 +117,36 @@ session_write_close();
 				<div ng-show="postList[$index].show">
 					<p>{{post.content}}</p>
 					<button class="btn btn-default" ng-click="postList[$index].show = false;">Close</button>
+				</div>
+			</div>
+			<div id="editor" class="modal fade" tab-index="-1" role="dialog">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="model-title">Edit Post <small class="msg-error">{{editor.error}}</small></h4>
+						</div>
+						<div class="modal-body">
+							<div class="input-group">
+								<span class="input-group-addon">
+									Title
+								</span>
+								<input class="form-control" type="text" ng-model="editor.title">
+							</div>
+							<div>
+								<div class="input-group">
+									<span class="input-group-addon">
+										Content
+									</span>
+								</div>
+								<textarea class="editor" ng-model="editor.content"></textarea>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-default" data-dismiss="modal" ng-click="clearEditor();">Discard Edits</button>
+							<button type="button" class="btn btn-info" ng-click="submitEditorData();">Save Changes</button>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>

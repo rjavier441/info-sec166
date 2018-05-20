@@ -10,6 +10,13 @@ div.post-area {
 	/*overflow: scroll;*/
 }
 
+textarea.editor {
+	min-height: 200px;
+	max-height: 600px;
+	max-width: 100%;
+	min-width: 100%;
+}
+
 .btn-login {
 	width: 100%;
 }
