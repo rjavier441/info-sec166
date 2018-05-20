@@ -332,9 +332,16 @@ app.controller("postAreaController", function ($scope, $http, $window) {
 		});
 	};
 	// END Controller Functions
+
+	// BEGIN Event Listners
+	$scope.$on("createdPost", function (event, args) {
+		// Reload all posts on a "createdPost" event, which is signaled by the postCreatorController
+		ctl.getPosts();
+	});
+	// END Event Listners
 });
 
-app.controller("postCreatorController", function ($scope, $http, $window) {
+app.controller("postCreatorController", function ($scope, $rootScope, $http, $window) {
 	// BEGIN model
 	var ctl = $scope;
 	$scope.error = "";
@@ -397,6 +404,9 @@ app.controller("postCreatorController", function ($scope, $http, $window) {
 							log(`post`, `postCreatorController`, `Post created successfully`);
 							ctl.clearCreator();
 							ctl.closeCreatorManually();
+
+							// Broadcast a "createdPost" event to the $rootScope, so that other controllers who need to hear it can react accordingly
+							$rootScope.$broadcast("createdPost");
 						} else {
 							log(`post`, `postCreatorController`, `Post was not created`);
 							ctl.error = (hasEmsg) ? response.data.body.emsg : "Post was not created";
