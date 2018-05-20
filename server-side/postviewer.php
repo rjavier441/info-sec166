@@ -243,7 +243,7 @@ function updatePost ($pid, $title, $content) {
     if ($any_conn_err) {
         $return_val = array("success" => FALSE, "emsg" => "Could not connect to database");
     } else if (!hasEditPermission($pid, $_SESSION["userid"])) {
-        $return_val = array("success" => FALSE, "emsg" => "You aren't allowed to edit this post");
+        $return_val = array("success" => FALSE, "emsg" => "Denied; You can only edit your own posts!");
     } else {
         $query = "UPDATE post SET title=?, content=? WHERE postid=?";
         $stmt = $db->stmt_init();
