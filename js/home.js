@@ -424,7 +424,7 @@ app.controller("postCreatorController", function ($scope, $rootScope, $http, $wi
         ctl.dropzone = new Dropzone(`form#${dropzoneElementID}`, {
             "url": "server-side/processimage.php",
             "method": "post",
-            "maxFilesize": 2,   // MB
+            "maxFilesize": 7,   // MB
             "paramName": "file",    // name of temp file generated when sending to server
             "createImageThumbnails": true,
             "thumbnailWidth": 100,
@@ -438,18 +438,22 @@ app.controller("postCreatorController", function ($scope, $rootScope, $http, $wi
             "init": function () {
                 // Ensure only one file per post
                 this.on("addedfile", function (file) {
-                    console.log("Added " + JSON.stringify(file));
+                    console.log("Added " + JSON.stringify(file.upload.filename));
                     $(".dz-message").addClass("hidden");
                 });
 
                 this.on("removedfile", function (file) {
-                    console.log("Removed " + JSON.stringify(file));
+                    console.log("Removed " + JSON.stringify(file.upload.filename));
                     $(".dz-message").removeClass("hidden");
                 });
 
                 // Remove the file when upload is complete
                 this.on("complete", (file) => {
+                    ctl.clearCreator();
+                    ctl.closeCreatorManually();
                     this.removeAllFiles();
+                    // Broadcast a "createdPost" event to the $rootScope, so that other controllers who need to hear it can react accordingly
+                    $rootScope.$broadcast("createdPost");
                     $(".dz-message").removeClass("hidden");
                 });
             }
@@ -477,7 +481,8 @@ app.controller("postCreatorController", function ($scope, $rootScope, $http, $wi
 				"token": sessionStorage.getItem("token"),
 				"timestamp": Date.now(),
 				"title": ctl.title,
-				"content": ctl.content
+				"content": ctl.content,
+                "filename": (typeof ctl.dropzone.files[0] === "undefined") ? "" : ctl.dropzone.files[0].upload.filename
 			}
 		};
 		var config = {
@@ -508,12 +513,7 @@ app.controller("postCreatorController", function ($scope, $rootScope, $http, $wi
 					case 200: {
 						if (hasSuccess && response.data.body.success === true) {
 							log(`post`, `postCreatorController`, `Post created successfully`);
-                            ctl.dropzone.processQueue();    // upload image files
-							ctl.clearCreator();
-							ctl.closeCreatorManually();
-
-							// Broadcast a "createdPost" event to the $rootScope, so that other controllers who need to hear it can react accordingly
-							$rootScope.$broadcast("createdPost");
+                            ctl.dropzone.processQueue();    // upload image files; the listener in the dropzone modal area will automatically broadcast an event to reload the posts
 						} else {
 							log(`post`, `postCreatorController`, `Post was not created`);
 							ctl.error = (hasEmsg) ? response.data.body.emsg : "Post was not created";

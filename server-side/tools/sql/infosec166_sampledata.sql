@@ -18,10 +18,10 @@ INSERT INTO admin(userid) VALUES (1);	-- User "admin"'s user ID is auto-incremen
 -- NOTHING. Session data is generated ONLY when a person logs in, and is removed when a person logs out!
 
 -- Sample Post Data
-INSERT INTO post(userid,title,content) VALUES
-(1,"TestPost","This is a test post!"),
-(2,"We have a hulk","My favorite line in the movie!"),
-(3,"A script of Batman","FADE IN:
+INSERT INTO post(userid,title,filename,content) VALUES
+(1,"TestPost","","This is a test post!"),
+(2,"We have a hulk","","My favorite line in the movie!"),
+(3,"A script of Batman","","FADE IN:
 
      EXT. CITYSCAPE - NIGHT
 

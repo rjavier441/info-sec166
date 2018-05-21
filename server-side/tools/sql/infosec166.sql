@@ -33,6 +33,7 @@ CREATE TABLE post (
 	postid integer NOT NULL AUTO_INCREMENT,
 	userid integer NOT NULL,
 	content text CHARACTER SET utf8,
+    filename text CHARACTER SET utf8,
 	posttime timestamp DEFAULT CURRENT_TIMESTAMP,
 	title varchar(200),
 	PRIMARY KEY (postid),

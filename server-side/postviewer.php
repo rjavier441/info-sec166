@@ -157,15 +157,16 @@ switch ($action) {
         break;
     case "create":
         // Ensure that the appropriate parameters were given
-        if (!isset($data->title) || !isset($data->content)) {
+        if (!isset($data->title) || !isset($data->content) || !isset($data->filename)) {
             $res_body = array("nonce" => $client_nonce, "emsg" => "Your request was incomplete");
             $response = formatResponse("failure", $res_body);
         } else {
             $newContent = $data->content;
             $newTitle = $data->title;
+            $newFile = $data->filename;
 
             // Create a new post
-            $creator_result = createPost($newTitle, $newContent, $_SESSION["userid"]);
+            $creator_result = createPost($newTitle, $newContent, $_SESSION["userid"], $newFile);
             switch (gettype($creator_result)) {
                 case "boolean":
                     if ($update_result === FALSE) {
@@ -327,11 +328,12 @@ function updatePost ($pid, $title, $content) {
 // @parameter   title - the title for this new post
 // @parameter   content - the content for this new post
 // @parameter   uid - the author's userid
+// @parameter   filename - the filename of the image associated with the post (passing "" is valid if the post doesn't have an image)
 // @returns     On successful creation: TRUE
 //              On failed creation: FALSE
 //              On other error: array("success" => FALSE, "emsg" => "some error message")
 // @details     This function attempts to create a new post with the given title and content.
-function createPost ($title, $content, $uid) {
+function createPost ($title, $content, $uid, $filename = "") {
     global $_CREDENTIALS;
     $return_val = NULL;
 
@@ -343,7 +345,7 @@ function createPost ($title, $content, $uid) {
     if ($any_conn_err) {
         $return_val = array("success" => FALSE, "emsg" => "Could not connect to database");
     } else {
-        $query = "INSERT INTO post (userid, title, content) VALUES (?,?,?)";
+        $query = "INSERT INTO post (userid, title, filename, content) VALUES (?,?,?,?)";
         $stmt = $db->stmt_init();
 
         // Prepare statment
@@ -351,7 +353,7 @@ function createPost ($title, $content, $uid) {
             $return_val = array("success" => FALSE, "emsg" => "Could not prepare statement(s)");
         } else {
             // Execute statement and check the operation's result
-            $stmt->bind_param("iss", $uid, $title, $content);
+            $stmt->bind_param("isss", $uid, $title, $filename, $content);
             if (!$stmt->execute()) {
                 $return_val = FALSE;
             } else {
