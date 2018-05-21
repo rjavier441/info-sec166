@@ -43,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 	// Validate file size
 	$file_valid = TRUE;
-	if ($uploadfile_size < 100 || $uploadfile_size > 2000000) {
+	if ($uploadfile_size < 100 || $uploadfile_size > 8000000) {
 		$file_valid = FALSE;
 	}
 
