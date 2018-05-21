@@ -8,7 +8,7 @@
 // 	Dependencies:
 // 					JavaScript ECMAScript 6 (string templating)
 
-var dbgMode = false;
+var dbgMode = true;
 var protocol = "https";
 var hostname = (dbgMode) ? "localhost/info-sec166" : "www.rjonaws.com";
 

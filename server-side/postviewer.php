@@ -243,7 +243,7 @@ function searchPosts ($term, $type, $size, $page) {
     if ($any_conn_err) {
         $return_val = array("success" => FALSE, "emsg" => "Could not connect to database");
     } else {
-        $query = "SELECT p.postid, u.userid, p.content, p.posttime, p.title, u.username AS author FROM post AS p LEFT OUTER JOIN user AS u ON p.userid=u.userid WHERE p.$type LIKE ? ORDER BY p.posttime DESC LIMIT ?, ?";
+        $query = "SELECT p.postid, u.userid, p.content, p.posttime, p.title, p.filename, u.username AS author FROM post AS p LEFT OUTER JOIN user AS u ON p.userid=u.userid WHERE p.$type LIKE ? ORDER BY p.posttime DESC LIMIT ?, ?";
         $stmt = $db->stmt_init();
 
         // Prepare statment

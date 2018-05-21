@@ -14,7 +14,8 @@ var storageOk = storageAvailable("sessionStorage");
 var urls = {
 	"userInfo": `${protocol}://${hostname}/server-side/userinfo.php`,
 	"logout": `${protocol}://${hostname}/server-side/logout.php`,
-	"postViewer": `${protocol}://${hostname}/server-side/postviewer.php`
+	"postViewer": `${protocol}://${hostname}/server-side/postviewer.php`,
+    "imageRequest": `${protocol}://${hostname}/upload/`
 };
 
 
@@ -236,6 +237,7 @@ app.controller("postAreaController", function ($scope, $http, $window) {
 							for(var i = 0; i < tempPostList.length; i++) {
 								tempPostList[i].show = false;	// adds a show variable to this post
 								tempPostList[i].error = "";	// adds an error variable to this specific post block
+                                tempPostList[i].imageurl = (tempPostList[i].filename === "" || typeof tempPostList[i].filename === "undefined") ? "" : `${urls.imageRequest}${tempPostList[i].filename}`;
 							}
 							ctl.postList = tempPostList;
 						}
