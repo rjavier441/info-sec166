@@ -183,6 +183,33 @@ switch ($action) {
             }
         }
         break;
+    case "delete":
+        // Ensure that the appropriate parameters were given
+        if (!isset($data->postid)) {
+            $res_body = array("nonce" => $client_nonce, "emsg" => "Your request was incomplete");
+            $response = formatResponse("failure", $res_body);
+        } else {
+            $postidForDeletion = $data->postid;
+
+            // Delete the post
+            $deletion_result = deletePost($postidForDeletion, $_SESSION["userid"]);
+            switch (gettype($deletion_result)) {
+                case "boolean":
+                    if ($deletion_result === FALSE) {
+                        $res_body = array("nonce" => $client_nonce, "emsg" => "You are not authorized to delete this post");
+                        $response = formatResponse("failure", $res_body);
+                    } else {
+                        $res_body = array("nonce" => $client_nonce, "success" => TRUE, "result" => "Deletion successful");
+                        $response = formatResponse("success", $res_body);
+                    }
+                    break;
+                default:
+                    $res_body = array("nonce" => $client_nonce, "emsg" => $deletion_result["emsg"]);
+                    $response = formatResponse("failure", $res_body);
+                    break;
+            }
+        }
+        break;
     default:
         $res_body = array("nonce" => $client_nonce, "emsg" => "Unrecognized action $action");
         $response = formatResponse("failure", $res_body);
@@ -339,13 +366,63 @@ function createPost ($title, $content, $uid) {
     return $return_val;
 }
 
+// @function    deletePost
+// @parameter   pid - the postid of the post to delete
+// @parameter   uid - the userid of the user requesting this deletion
+// @returns     On successful processing, and deletion is authorized: TRUE
+//              On successful processing, but deletion is unauthorized: FALSE
+//              On failure: array("success" => FALSE, "emsg" => "some error message")
+// @details     This function attempts to delete a post with the specified "pid", but only if the user is authorized to do so.
+function deletePost ($pid, $uid) {
+    global $_CREDENTIALS, $isAdmin;
+    $return_val = NULL;
+
+    // Check that this user has permission to edit/delete
+    $canDelete = hasEditPermission($pid, $uid);
+
+    // Initialize MySQL database connection
+    $db = mysqli_connect($_CREDENTIALS["db"]["host"], $_CREDENTIALS["db"]["user"], $_CREDENTIALS["db"]["pwd"], $_CREDENTIALS["db"]["name"]);
+
+    // Ensure the connection was good
+    $any_conn_err = mysqli_connect_errno();
+    if ($any_conn_err) {
+        $return_val = array("success" => FALSE, "emsg" => "Could not connect to database");
+    } else if (gettype($canDelete) !== "boolean") {
+        $return_val = array("success" => FALSE, "emsg" => "Unable to verify delete permissions");
+    } else if ($canDelete === FALSE && $isAdmin === FALSE) {
+        $return_val = FALSE;
+    } else {
+        $query = "DELETE FROM post WHERE postid = ?";
+        $stmt = $db->stmt_init();
+
+        // Prepare statment
+        if (!$stmt->prepare($query)) {
+            $return_val = array("success" => FALSE, "emsg" => "Could not verify edit permission");
+        } else {
+            // Execute statement and compile results
+            $stmt->bind_param("i", $pid);
+            if (!$stmt->execute()) {
+                $return_val = array("success" => FALSE, "emsg" => "Could not delete post");
+            } else {
+                $return_val = TRUE;
+            }
+        }
+        $stmt->close();
+    }
+
+    // Close MySQL database connection
+    mysqli_close($db);
+    return $return_val;
+}
+
 // @function    hasEditPermisssion
 // @parameter   pid - the postid of a post
 // @parameter   uid - the userid of a user
 // @returns     On success, and user can edit: true
 //              On success, but user cannot edit: false
 //              On failure: array("success" => FALSE, "emsg" => "some error message")
-// @details     This function is useful for determining whether a user specified by "uid" is authorized to update a post specified by "pid"
+// @details     This function is useful for determining whether a user specified by "uid" is authorized to update/delete a post specified by "pid".
+// @note        This function DOES NOT account for a user's admin status.
 function hasEditPermission ($pid, $uid) {
     global $_CREDENTIALS;
     $return_val = NULL;

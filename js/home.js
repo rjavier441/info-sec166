@@ -178,6 +178,9 @@ app.controller("postAreaController", function ($scope, $http, $window) {
 	$scope.setError = function (msg) {
 		ctl.error = msg;
 	};
+	$scope.setPostError = function (index, msg) {
+		ctl.postList[index].error = msg;
+	};
 	$scope.getPosts = function () {
 		var requestBody = {
 			"action": "search",
@@ -231,7 +234,8 @@ app.controller("postAreaController", function ($scope, $http, $window) {
 							// Add the "show" member to each member of the array
 							log("post", "postAreaController", `Post search successful`);
 							for(var i = 0; i < tempPostList.length; i++) {
-								tempPostList[i].show = false;
+								tempPostList[i].show = false;	// adds a show variable to this post
+								tempPostList[i].error = "";	// adds an error variable to this specific post block
 							}
 							ctl.postList = tempPostList;
 						}
@@ -248,6 +252,66 @@ app.controller("postAreaController", function ($scope, $http, $window) {
 			log("post", "postAreaController", `An error occurred: ${JSON.stringify(errResponse)}`);
 		});
 	}
+	$scope.deletePost = function (index) {
+		var postToDelete = ctl.postList[index];
+		var requestBody = {
+			"action": "delete",
+			"data": {
+				"token": sessionStorage.getItem("token"),
+				"timestamp": Date.now(),
+				"postid": postToDelete.postid
+			}
+		};
+		var config = {
+			"headers": {
+				"Content-Type": "application/json"
+			}
+		};
+
+		log("deletePost", "postAreaController", `Requesting posts...`);
+		$http.post(urls.postViewer, requestBody, config).then((response) => {
+			var hasStatus = (typeof response.data.status === "undefined") ? false : true;
+			var hasBody = (typeof response.data.body === "undefined") ? false : true;
+			var hasNonce = (!hasBody) ? false : (typeof response.data.body.nonce === "undefined") ? false : true;
+			var hasEmsg = (!hasBody) ? false : (typeof response.data.body.emsg === "undefined") ? false : true;
+			var hasSuccess = (!hasBody) ? false : (typeof response.data.body.success === "undefined") ? false : true;
+
+			log(`post`, `postAreaController`, `Response received: ${JSON.stringify(response.data)}`);	// debug
+			ctl.setError("");
+			ctl.setPostError(index, "");
+			if (!hasStatus || !hasNonce) {
+				log(`post`, `postAreaController`, `Response is incomplete`);
+				var msg = (hasEmsg) ? response.data.body.emsg : "Response incomplete; contact the server admin!";
+				ctl.setError(msg);
+			} else if (!checkTimestampNonce(requestBody.data.timestamp, response.data.body.nonce)) {
+				// Nonce is not correct; this server I'm connected to could be lying about who they claim they are!
+				ctl.setError("Incorrect Nonce");
+				log(`post`, `postAreaController`, `expected nonce "${Date.parse(requestBody.data.timestamp)}", received "${response.data.body.nonce}"`);
+			} else {
+				switch (response.status) {
+					case 200: {
+						if (hasSuccess && response.data.body.success === true) {
+							log("post", "postAreaController", "Post Deleted");
+							ctl.getPosts();	// reload posts
+						} else {
+							var msg = (hasEmsg) ? response.data.body.emsg : "Post was not updated";
+							log(`post`, `postAreaController`, `Post was not updated`);
+							ctl.setError(msg);
+							ctl.setPostError(index, msg);
+						}
+						break;
+					}
+					default: {
+						log(`post`, `postAreaController`, `Unexpected status code ${response.status}`);
+						ctl.setError(`Unexpected status code ${response.status}`);
+						break;
+					}
+				}
+			}
+		}).catch((errResponse) => {
+			log(`post`, `postAreaController`, `An error occurred: ${JSON.stringify(errResponse)}`);
+		});
+	};
 	$scope.launchEditor = function (index) {
 		// console.log(`Editing ${JSON.stringify(ctl.postList[index])}`);	// debug
 		var currentPost = ctl.postList[index];

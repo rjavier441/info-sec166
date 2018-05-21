@@ -134,9 +134,10 @@ session_write_close();
 						<button class="btn btn-default" ng-click="launchEditor($index);" ng-show="post.can_edit">
 							<span class="glyphicon glyphicon-pencil"></span>
 						</button>
-						<button class="btn btn-default" ng-show="post.can_edit">
+						<button class="btn btn-default" ng-click="deletePost($index);" ng-show="post.can_edit">
 							<span class="glyphicon glyphicon-remove"></span>
 						</button>
+						<span class="msg-error">{{post.error}}</span>
 					</div>
 				</h2>
 				<div ng-show="!postList[$index].show">
