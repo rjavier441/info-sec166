@@ -196,6 +196,22 @@ session_write_close();
 		</div>
 		<div class="col-xs-1 col-sm-1 col-md-2 col-lg-2"></div>
 	</div>
+	<div id="privacyStatement" class="modal fade">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="model-title">Privacy Statement</h4>
+				</div>
+				<div class="modal-body">
+					<h3>This is important. Please read it in full!</h3>
+					<p>
+						This site collects your username, birthdate, and password for identification and login purposes ONLY. No third party other than this site will collect your information, whatsoever, and only your username is publicly displayed through the posts that you author. The rest of your information will be stored in a safe and secure manner, and you can be deleted by sending your username via an email request to the server admin at rjavier.misc@gmail.com.
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
 </body>
 <!-- END body -->
 
@@ -205,6 +221,7 @@ session_write_close();
 	<script type="text/javascript" src="js/lib/utility.js"></script>
 	<script type="text/javascript" src="js/home.js"></script>
 	<h4>Powered by: <i class="fab fa-angular"></i> <i class="fab fa-js-square"></i></h4>
+	<a href="#" onclick="$('#privacyStatement').modal('show');">Privacy Statement</a>
 </footer>
 <!-- END footer -->
 </html>
