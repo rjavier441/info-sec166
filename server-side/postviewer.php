@@ -394,22 +394,55 @@ function deletePost ($pid, $uid) {
     } else if ($canDelete === FALSE && $isAdmin === FALSE) {
         $return_val = FALSE;
     } else {
-        $query = "DELETE FROM post WHERE postid = ?";
-        $stmt = $db->stmt_init();
-
-        // Prepare statment
-        if (!$stmt->prepare($query)) {
-            $return_val = array("success" => FALSE, "emsg" => "Could not verify edit permission");
+        $postfilename_identified = FALSE;
+        $postfilename = "";
+        $postinfoquery = "SELECT filename FROM post WHERE postid = ?";
+        $piq = $db->stmt_init();
+        if (!$piq->prepare($postinfoquery)) {
+            $return_val = array("success" => FALSE, "emsg" => "Unable to remove residual files");
         } else {
-            // Execute statement and compile results
-            $stmt->bind_param("i", $pid);
-            if (!$stmt->execute()) {
-                $return_val = array("success" => FALSE, "emsg" => "Could not delete post");
+            $piq->bind_param("i", $pid);
+            $piq->execute();
+            $piq_res_obj = $piq->get_result();
+            $piq_result = array();
+            while ($row = $piq_res_obj->fetch_assoc()) {
+                array_push($piq_result, $row);
+            }
+
+            if (count($piq_result) != 1) {
+                $return_val = array("success" => FALSE, "emsg" => "Unable to identify residual files");
             } else {
-                $return_val = TRUE;
+                $postfilename_identified = TRUE;
+                $postfilename = $piq_result[0]["filename"];
             }
         }
-        $stmt->close();
+        $piq->close();
+
+        if ($postfilename_identified) {
+            // Delete the file with the filename, if it is not empty
+            $postfilepath = "../upload/" . $postfilename;
+            if ($postfilename !== "" && !unlink($postfilepath)) {
+                $return_val = array("success" => FALSE, "emsg" => "Residual file '$postfilename' was not removed");
+            } else {
+                // Proceed to delete the post data, itself
+                $query = "DELETE FROM post WHERE postid = ?";
+                $stmt = $db->stmt_init();
+
+                // Prepare statment
+                if (!$stmt->prepare($query)) {
+                    $return_val = array("success" => FALSE, "emsg" => "Could not verify edit permission");
+                } else {
+                    // Execute statement and compile results
+                    $stmt->bind_param("i", $pid);
+                    if (!$stmt->execute()) {
+                        $return_val = array("success" => FALSE, "emsg" => "Could not delete post");
+                    } else {
+                        $return_val = TRUE;
+                    }
+                }
+                $stmt->close();
+            }
+        }
     }
 
     // Close MySQL database connection
