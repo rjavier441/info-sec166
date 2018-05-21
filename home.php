@@ -61,6 +61,9 @@ session_write_close();
 	<!-- FontAwesome -->
 	<link href="https://use.fontawesome.com/releases/v5.0.4/css/all.css" rel="stylesheet">
 
+	<!-- Dropzone.js Drag-n-Drop File Uploader -->
+	<script type="text/javascript" src="js/lib/dropzone.js"></script>
+
 	<!-- Custom Google Font: Rubik -->
 	<link href="https://fonts.googleapis.com/css?family=Rubik" rel="stylesheet">
 
@@ -112,6 +115,15 @@ session_write_close();
 									</span>
 								</div>
 								<textarea class="editor" ng-model="content"></textarea>
+							</div>
+							<div class="panel panel-default" height="100px">
+								<div class="panel-body">
+									<form action="server-side/processimage.php" class="dropzone" id="uploader" enctype="multipart/form-data">
+										<div class="fallback">
+											<input name="file" type="file" multiple />
+										</div>
+									</form>
+								</div>
 							</div>
 						</div>
 						<div class="modal-footer">
