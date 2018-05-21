@@ -118,11 +118,31 @@ session_write_close();
 							</div>
 							<div class="panel panel-default" height="100px">
 								<div class="panel-body">
-									<form action="server-side/processimage.php" class="dropzone" id="uploader" enctype="multipart/form-data">
+									<!-- <form action="server-side/processimage.php" class="dropzone" id="uploader" enctype="multipart/form-data">
+										<div class="dz-message">Click to upload an image</div>
+										<div class="fallback">
+											<input name="file" type="file" multiple />
+										</div>
+									</form> -->
+									<form id="uploader" enctype="multipart/form-data">
+										<button class="btn btn-default dz-message" style="width:100%;">Click to upload an image</button>
 										<div class="fallback">
 											<input name="file" type="file" multiple />
 										</div>
 									</form>
+									<div id="tpl" hidden>
+										<div class="dz-preview dz-file-preview">
+											<div class="dz-details">
+												<div class="dz-filename"><span data-dz-name></span></div>
+												<div class="dz-size" data-dz-size></div>
+												<img data-dz-thumbnail />
+											</div>
+											<div class="dz-progress"><span class="dz-upload" data-dz-uploadprogress></span></div>
+											<div class="dz-success-mark"><span hidden>✔</span></div>
+											<div class="dz-error-mark"><span hidden>✘</span></div>
+											<div class="dz-error-message"><span data-dz-errormessage></span></div>
+										</div>
+									</div>
 								</div>
 							</div>
 						</div>

@@ -411,9 +411,50 @@ app.controller("postCreatorController", function ($scope, $rootScope, $http, $wi
 	$scope.error = "";
 	$scope.title = "";
 	$scope.content = "";
+    $scope.dropzone = null;
 	// END model
 
 	// BEGIN Controller Functions
+    $(document).ready(function () {
+        ctl.configureDropzone();
+        console.log("Creator initialized...");
+    });
+    $scope.configureDropzone = function () {
+        var dropzoneElementID = "uploader";
+        ctl.dropzone = new Dropzone(`form#${dropzoneElementID}`, {
+            "url": "server-side/processimage.php",
+            "method": "post",
+            "maxFilesize": 2,   // MB
+            "paramName": "file",    // name of temp file generated when sending to server
+            "createImageThumbnails": true,
+            "thumbnailWidth": 100,
+            "thumbnailHeight": 100,
+            "thumbnailMethod": "contain",
+            "maxFiles": 1,
+            "acceptedFiles": "image/png,image/jpeg",
+            "autoProcessQueue": false,
+            "addRemoveLinks": true,
+            "previewTemplate": document.querySelector("#tpl").innerHTML,
+            "init": function () {
+                // Ensure only one file per post
+                this.on("addedfile", function (file) {
+                    console.log("Added " + JSON.stringify(file));
+                    $(".dz-message").addClass("hidden");
+                });
+
+                this.on("removedfile", function (file) {
+                    console.log("Removed " + JSON.stringify(file));
+                    $(".dz-message").removeClass("hidden");
+                });
+
+                // Remove the file when upload is complete
+                this.on("complete", (file) => {
+                    this.removeAllFiles();
+                    $(".dz-message").removeClass("hidden");
+                });
+            }
+        });
+    };
 	$scope.launchCreator = function () {
 		log("launchCreator", "postCreatorController", "Launching creator...");
 		$("#creator").modal("show");
@@ -423,6 +464,7 @@ app.controller("postCreatorController", function ($scope, $rootScope, $http, $wi
 		ctl.error = "";
 		ctl.title = "";
 		ctl.content = "";
+        ctl.dropzone.removeAllFiles();
 	};
 	$scope.closeCreatorManually = function () {
 		log("closeCreatorManually", "postCreatorController", "Closing creator...");
@@ -466,6 +508,7 @@ app.controller("postCreatorController", function ($scope, $rootScope, $http, $wi
 					case 200: {
 						if (hasSuccess && response.data.body.success === true) {
 							log(`post`, `postCreatorController`, `Post created successfully`);
+                            ctl.dropzone.processQueue();    // upload image files
 							ctl.clearCreator();
 							ctl.closeCreatorManually();
 
