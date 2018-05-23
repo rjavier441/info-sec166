@@ -1,6 +1,24 @@
 <?php
+//  PROJECT:        InfoSec166
+//  Name:           R. Javier
+//  File:           logout.php
+//  Date Created:   May 10, 2018
+//  Last Modified:  May 10, 2018
+//  Details:
+//                  This file contains the logout logic for a session
+//  Dependencies:
+//                  PHP
+//                  MySQL
+//                  Apache Web Server
 require "lib/credentials.php";
 require "utility.php";
+
+// Compatibility Check: AWS environment differs from my own, so I must refer to them differently
+if (checkDebugMode($_IS_OPT)) {
+	$subdir = "/info-sec166";
+} else {
+	$subdir = "";
+}
 
 // Enable use of session variables
 session_start();
@@ -32,15 +50,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 } else {
 	$method_used = $_SERVER["REQUEST_METHOD"];
 	$response = formatResponse("failure", array("emsg" => "Method $method_used not allowed"));
-	$statuscode = 500;
+	// $statuscode = 500;
 }
 
 // Only proceed if the client token is correct
-if ($data->token !== $_SESSION["token"]) {
-	$response = formatResponse("failure", array("nonce" => $client_nonce, "emsg" => "Invalid token"));
-	replyToClient($response, $statuscode);
-	exit();
-}
+// if ($data->token !== $_SESSION["token"]) {
+// 	$response = formatResponse("failure", array("nonce" => $client_nonce, "emsg" => "Invalid token"));
+// 	// replyToClient($response, $statuscode);
+// 	exit();
+// }
 
 // Process the input
 switch ($action) {
@@ -48,24 +66,24 @@ switch ($action) {
 		killSession();
 		$res_body = array(
 			"nonce" => $client_nonce,
-			"redirect" => "https://" . $_SERVER["HTTP_HOST"] . "/info-sec166"
+			"redirect" => "https://" . $_SERVER["HTTP_HOST"] . $subdir
 		);
 		$response = formatResponse("success", $res_body);
-		$statuscode = 200;
+		// $statuscode = 200;
 		break;
 	case "logoutall":	// logout ALL sessions on the database
 		killSession();
 		$res_body = array(
 			"nonce" => $client_nonce,
-			"redirect" => "https://" . $_SERVER["HTTP_HOST"] . "/info-sec166"
+			"redirect" => "https://" . $_SERVER["HTTP_HOST"] . $subdir
 		);
 		$response = formatResponse("success", $res_body);
-		$statuscode = 200;
+		// $statuscode = 200;
 		break;
 	default:
 		$res_body = array("nonce" => $client_nonce, "emsg" => "Unrecognized action $action");
 		$response = formatResponse("failure", $res_body);
-		$statuscode = 500;
+		// $statuscode = 500;
 		break;
 }
 

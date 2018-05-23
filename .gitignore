@@ -1,2 +1,6 @@
 # Ignore the credentials file
 *credentials.php
+
+# Ignore all contents in the upload directory
+upload/*
+!upload/placeholder

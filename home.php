@@ -1,4 +1,9 @@
 <?php
+// Unfortunately, I haven't figured out how to include in front-end php files. I'll have to copy this function for now.
+function checkDebugMode ($_IS_OPT) {
+    return isset($_IS_OPT) && $_IS_OPT["dbgMode"] === true;
+}
+
 // Enable session data usage
 session_start();
 
@@ -9,6 +14,13 @@ if($_SERVER["HTTPS"] != "on") {
     exit();
 }
 
+// Compatibility Check: AWS environment differs from my own, so I must refer to them differently
+if (checkDebugMode($_IS_OPT)) {
+	$subdir = "/info-sec166";
+} else {
+	$subdir = "";
+}
+
 // Acquire token from querystring parameters
 $client_token = $_GET["token"];
 $recorded_token = $_SESSION["token"];
@@ -16,7 +28,7 @@ $recorded_token = $_SESSION["token"];
 // Check that the token already has session data
 if ($client_token !== $recorded_token || !isset($_SESSION["token"])) {
 	// Take client back to the login page
-	header("Location: https://" . $_SERVER["HTTP_HOST"] . "/info-sec166");
+	header("Location: https://" . $_SERVER["HTTP_HOST"] . $subdir);
 	exit();
 }
 session_write_close();
@@ -49,6 +61,9 @@ session_write_close();
 	<!-- FontAwesome -->
 	<link href="https://use.fontawesome.com/releases/v5.0.4/css/all.css" rel="stylesheet">
 
+	<!-- Dropzone.js Drag-n-Drop File Uploader -->
+	<script type="text/javascript" src="js/lib/dropzone.js"></script>
+
 	<!-- Custom Google Font: Rubik -->
 	<link href="https://fonts.googleapis.com/css?family=Rubik" rel="stylesheet">
 
@@ -60,28 +75,164 @@ session_write_close();
 <!-- BEGIN body -->
 <body class="container-fluid" ng-app="homeApp">
 	<nav class="navbar navbar-default navbar-fixed-top" ng-controller="navbarController">
-		<div class="container-fluid">
-			<div class="navbar-header">
-				<button type="button" class="navbar-toggle collapse" data-toggle="collapse" data-target="#navbarCollapsible" aria-expanded="false">
-					<span class="sr-only">Toggle Navigation</span>
-				</button>
+		<div class="navbar-inner">
+			<div class="container-fluid">
 				<a href="#" class="navbar-brand">
-					<span><img src="img/icon-1968247_1280.png" alt="" style="max-height: 100%"> InfoSec166</span>
+					<span><img src="img/icon-1968247_1280.png" alt="" style="max-height: 100%"> InfoSec166 </span>
 				</a>
-			</div>
-			<div id="navbarCollapsible" class="collapse navbar-collapse">
 				<ul class="nav navbar-nav navbar-right">
 					<li class="dropdown">
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Welcome, {{username}} <span class="caret"></span></a>
 						<ul class="dropdown-menu">
 							<li ng-click="logout()"><a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-							<li><a href="#"></a></li>
 						</ul>
 					</li>
 				</ul>
 			</div>
 		</div>
 	</nav>
+	<div class="row" ng-controller="postAreaController">
+		<div class="control-area col-xs-1 col-sm-1 col-md-2 col-lg-2" ng-controller="postCreatorController">
+			<button type="button" class="navbar-btn btn btn-default btn-control" ng-click="launchCreator();"><span class="glyphicon glyphicon-plus btn-control"></span></button>
+			<div id="creator" class="modal fade" tab-index="-1" role="dialog">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="model-title">Create New Post <small class="msg-error">{{error}}</small></h4>
+						</div>
+						<div class="modal-body">
+							<div class="input-group">
+								<span class="input-group-addon">
+									Title
+								</span>
+								<input class="form-control" type="text" ng-model="title">
+							</div>
+							<div>
+								<div class="input-group">
+									<span class="input-group-addon">
+										Content
+									</span>
+								</div>
+								<textarea class="editor" ng-model="content"></textarea>
+							</div>
+							<div class="panel panel-default" height="100px">
+								<div class="panel-body">
+									<!-- <form action="server-side/processimage.php" class="dropzone" id="uploader" enctype="multipart/form-data">
+										<div class="dz-message">Click to upload an image</div>
+										<div class="fallback">
+											<input name="file" type="file" multiple />
+										</div>
+									</form> -->
+									<form id="uploader" enctype="multipart/form-data">
+										<button class="btn btn-default dz-message" style="width:100%;">Click to upload an image</button>
+										<div class="fallback">
+											<input name="file" type="file" multiple />
+										</div>
+									</form>
+									<div id="tpl" hidden>
+										<div class="dz-preview dz-file-preview">
+											<div class="dz-details">
+												<div class="dz-filename"><span data-dz-name></span></div>
+												<div class="dz-size" data-dz-size></div>
+												<img data-dz-thumbnail />
+											</div>
+											<div class="dz-progress"><span class="dz-upload" data-dz-uploadprogress></span></div>
+											<div class="dz-success-mark"><span hidden>✔</span></div>
+											<div class="dz-error-mark"><span hidden>✘</span></div>
+											<div class="dz-error-message"><span data-dz-errormessage></span></div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-default" data-dismiss="modal" ng-click="clearCreator();">Discard Post</button>
+							<button type="button" class="btn btn-info" ng-click="submitCreatorData();">Save Post</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="post-area col-xs-10 col-sm-10 col-md-8 col-lg-8">
+			<div class="well" ng-repeat="post in postList">
+				<h2 class="post-title">
+					{{post.title}}
+					<small>
+						posted by {{post.author}}
+						<p>{{post.posttime}}</p>
+					</small>
+					<div class="btn-group">
+						<button class="btn btn-default" ng-click="launchEditor($index);" ng-show="post.can_edit">
+							<span class="glyphicon glyphicon-pencil"></span>
+						</button>
+						<button class="btn btn-default" ng-click="deletePost($index);" ng-show="post.can_edit">
+							<span class="glyphicon glyphicon-remove"></span>
+						</button>
+						<span class="msg-error">{{post.error}}</span>
+					</div>
+				</h2>
+				<img src="{{post.imageurl}}" class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+				<div ng-show="!postList[$index].show">
+					<p>{{(post.content).slice(0, previewSize)}}
+						<span ng-hide="postList[$index].content.length < previewSize">...</span>
+					</p>
+					<button class="btn btn-info" ng-click="postList[$index].show = true;" ng-hide="postList[$index].content.length < previewSize">Expand</button>
+				</div>
+				<div ng-show="postList[$index].show">
+					<p>{{post.content}}</p>
+					<button class="btn btn-default" ng-click="postList[$index].show = false;">Close</button>
+				</div>
+			</div>
+			<div id="editor" class="modal fade" tab-index="-1" role="dialog">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="model-title">Edit Post <small class="msg-error">{{editor.error}}</small></h4>
+						</div>
+						<div class="modal-body">
+							<div class="input-group">
+								<span class="input-group-addon">
+									Title
+								</span>
+								<input class="form-control" type="text" ng-model="editor.title">
+							</div>
+							<div>
+								<div class="input-group">
+									<span class="input-group-addon">
+										Content
+									</span>
+								</div>
+								<textarea class="editor" ng-model="editor.content"></textarea>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-default" data-dismiss="modal" ng-click="clearEditor();">Discard Edits</button>
+							<button type="button" class="btn btn-info" ng-click="submitEditorData();">Save Changes</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-xs-1 col-sm-1 col-md-2 col-lg-2"></div>
+	</div>
+	<div id="privacyStatement" class="modal fade">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="model-title">Privacy Statement</h4>
+				</div>
+				<div class="modal-body">
+					<h3>This is important. Please read it in full!</h3>
+					<p>
+						This site collects your username, birthdate, and password for identification and login purposes ONLY. No third party other than this site will collect your information, whatsoever, and only your username is publicly displayed through the posts that you author. The rest of your information will be stored in a safe and secure manner, and you can be deleted by sending your username via an email request to the server admin at rjavier.misc@gmail.com.
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
 </body>
 <!-- END body -->
 
@@ -91,6 +242,7 @@ session_write_close();
 	<script type="text/javascript" src="js/lib/utility.js"></script>
 	<script type="text/javascript" src="js/home.js"></script>
 	<h4>Powered by: <i class="fab fa-angular"></i> <i class="fab fa-js-square"></i></h4>
+	<a href="#" onclick="$('#privacyStatement').modal('show');">Privacy Statement</a>
 </footer>
 <!-- END footer -->
 </html>

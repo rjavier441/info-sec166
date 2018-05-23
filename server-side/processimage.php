@@ -1,11 +1,11 @@
 <?php
 //  PROJECT:        InfoSec166
 //  Name:           R. Javier
-//  File:           utility.php
+//  File:           processimage.php
 //  Date Created:   May 10, 2018
 //  Last Modified:  May 10, 2018
 //  Details:
-//                  This file contains handy utility functions for acquire the current user's information
+//                  This file contains logic to process an image upload
 //  Dependencies:
 //                  PHP
 //                  MySQL
@@ -18,9 +18,6 @@ session_start();
 
 // Globals
 $response = "";
-$statuscode = NULL;
-$action = NULL;
-$data = NULL;
 $client_nonce = NULL;	// using timestamp as nonce 
 $errors = array();
 
@@ -37,9 +34,49 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 	if (empty($_POST)) {
 		$_POST = tryPostRestore();
 	}
-	$action = $_POST["action"];
-	$data = $_POST["data"];
-	$client_nonce = $data->timestamp + 1;
+
+	// BEGIN Handle File Upload
+	$upload_dir = "/var/www/html/info-sec166/upload/";
+	$uploadfile = $upload_dir . basename($_FILES["file"]["name"]);
+	$uploadfile_size = $_FILES["file"]["size"];
+	echo '<pre>';
+
+	// Validate file size
+	$file_valid = TRUE;
+	if ($uploadfile_size < 100 || $uploadfile_size > 8000000) {
+		$file_valid = FALSE;
+	}
+
+	// Validate file type
+	switch ($_FILES["file"]["type"]) {
+		case "image/jpeg":
+			// acceptable file type; do nothing
+			break;
+		case "image/png":
+			// acceptable file type; do nothing
+			break;
+		default:
+			$file_valid = FALSE;
+			break;
+	}
+
+	// Complete Validation and save file if valid
+	if ($file_valid) {
+		if (move_uploaded_file($_FILES['file']['tmp_name'], $uploadfile)) {
+		    echo "File is valid, and was successfully uploaded.\n";
+		} else {
+		    echo "Possible file upload attack!\n";
+		}
+	} else {
+		echo "Your file is unacceptable\n";
+	}
+
+	// echo 'Here is some more debugging info:';
+	// print_r($_FILES);
+
+	print "</pre>";
+	// replyToClient($response);
+	exit();
 } else if ($_SERVER["REQUEST_METHOD"] === "GET") {
 	$action = $_GET["action"];
 	$data = $_GET["data"];
@@ -59,13 +96,8 @@ if ($data->token !== $_SESSION["token"]) {
 
 // Process the input
 switch ($action) {
-	case "getall":
-		$res_body = array("nonce" => $client_nonce, "userinfo" => $_SESSION);
-		$response = formatResponse("success", $res_body);
-		// $statuscode = 200;
-		break;
 	default:
-		$res_body = array("nonce" => $client_nonce, "emsg" => "Unrecognized action $action");
+		$res_body = array("nonce" => $client_nonce, "emsg" => "The request cannot be performed");
 		$response = formatResponse("failure", $res_body);
 		// $statuscode = 500;
 		break;
