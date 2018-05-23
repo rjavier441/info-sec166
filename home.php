@@ -172,7 +172,7 @@ session_write_close();
 						<span class="msg-error">{{post.error}}</span>
 					</div>
 				</h2>
-				<img src="{{post.imageurl}}">
+				<img src="{{post.imageurl}}" class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
 				<div ng-show="!postList[$index].show">
 					<p>{{(post.content).slice(0, previewSize)}}
 						<span ng-hide="postList[$index].content.length < previewSize">...</span>
