@@ -421,8 +421,8 @@ function deletePost ($pid, $uid) {
         if ($postfilename_identified) {
             // Delete the file with the filename, if it is not empty
             $postfilepath = "../upload/" . $postfilename;
-            // if ($postfilename !== "" && !unlink($postfilepath)) {
-            if (FALSE) {
+            if ($postfilename !== "" && !unlink($postfilepath)) {
+            // if (FALSE) {
                 $return_val = array("success" => FALSE, "emsg" => "Residual file '$postfilename' was not removed");
             } else {
                 // Proceed to delete the post data, itself
